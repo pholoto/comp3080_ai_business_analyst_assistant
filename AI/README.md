@@ -31,7 +31,7 @@ without installing any model, albeit with mock answers.
 #### Option A — Install Ollama locally
 
 1. Download the latest Ollama release for Windows from the official website and
-   run the provided installer.
+   run the provided installer. https://ollama.com/download
 2. Launch the Ollama service and pull the llama model:
 
     ```powershell
