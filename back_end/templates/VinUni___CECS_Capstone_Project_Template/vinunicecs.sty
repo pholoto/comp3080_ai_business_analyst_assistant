@@ -1,0 +1,153 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesClass{exampleclass}[2014/08/16 Example LaTeX class]
+
+\RequirePackage{microtype}
+\RequirePackage{mathpazo}
+\RequirePackage{textcase}
+\RequirePackage{ifthen}
+\RequirePackage{amssymb}
+\RequirePackage{graphicx}
+\RequirePackage{natbib}
+\RequirePackage{multicol}
+\RequirePackage{xspace}
+\RequirePackage[dvipsnames]{xcolor}
+\RequirePackage{tcolorbox}
+\RequirePackage{tikz}
+\usetikzlibrary{arrows}
+\usetikzlibrary{shapes.geometric}
+\RequirePackage{listings}
+\usepackage{newverbs}
+\newverbcommand{\cverb}{\color{blue}}{}
+\RequirePackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=red,
+    linktoc=all
+}
+
+\tcbset{colback=Gray!10,colframe=black, boxrule=0pt}
+
+% set the default code style
+\lstdefinelanguage{latex} {morekeywords={def,begin,centering,end,xspace,hline,caption,label,textit,@article,@misc,cite,ref,chapter,section,subsection,subsubsection,include},morecomment=[l]{\%},}
+\lstset{
+    frame=single, % draw a frame at the top and bottom of the code block
+    backgroundcolor=\color{Gray!10}, 
+    tabsize=4, % tab space width
+    showstringspaces=true, % don't mark spaces in strings
+    numbers=left, % display line numbers on the left
+    commentstyle=\color{Red},
+    stringstyle=\color{ForestGreen},
+    basicstyle=\small\ttfamily, % basic font setting
+    emph={tabular,table,equation,figure,includegraphics,width,textwidth,title,author,journal,volume,pages,year,editor,url,howpublished,publisher},
+    emphstyle={\color{YellowOrange}},
+    keywordstyle=\color{blue},
+}
+
+\setlength{\topmargin}{0.0in}
+\setlength{\oddsidemargin}{0.33in}
+\setlength{\evensidemargin}{-0.08in}
+\setlength{\textheight}{8.5in}
+\setlength{\textwidth}{6.0in}
+
+%-----------------------------------------------------------------
+\newcommand{\frontmatter}[1]{%
+  \ifthenelse{\equal{#1}{1}}
+    {\include{./FrontMatter/titlePage}
+    \include{./FrontMatter/copyright}
+    \include{./FrontMatter/declaration}
+    \include{./FrontMatter/certificate}
+    \include{./FrontMatter/acknowledgements}
+    \include{./FrontMatter/dedication}
+    \include{./abstract}}
+    {\ifthenelse{\equal{#1}{2}}
+      {\include{./FrontMatter/titlePage2}
+      \include{./FrontMatter/copyright2}
+      \include{./FrontMatter/declaration2}
+      \include{./FrontMatter/certificate2}
+      \include{./FrontMatter/acknowledgements2}
+      \include{./FrontMatter/dedication2}
+      \include{./abstract}}
+      {\include{./FrontMatter/titlePage3}
+      \include{./FrontMatter/copyright3}
+      \include{./FrontMatter/declaration3}
+      \include{./FrontMatter/certificate3}
+      \include{./FrontMatter/acknowledgements3}
+      \include{./FrontMatter/dedication3}
+      \include{./abstract}}
+    }
+  }
+
+\newcommand{\coverpage}[1]{%
+  \ifthenelse{\equal{#1}{1}} {
+	\include{./CoverPage/cover}}
+	{\ifthenelse{\equal{#1}{2}} 
+	  {\include{./CoverPage/cover2}}
+	  {\include{./CoverPage/cover3}}
+	}
+  }
+%-----------------------------------------------------------------
+\def\College{Engineering and Computer Science\xspace}
+\def\University{VinUniversity\xspace}
+\def\Degree{Bachelor of Science in Electrical Engineering\xspace}
+\def\HodName{Dr. xxx\xspace}
+\def\HodPosition{Professor and Head\xspace}
+
+
+
+
+\ifpdftex
+	\ClassWarning{mitnewthesis}{The heros-stix2 fontset requires a unicode engine. Defaulting to CMR fonts.}
+	\RequirePackage[T1]{fontenc}
+	\RequirePackage{bm}
+\else
+	\typeout{^^JTeX Gyre Heros (sans serif) text font with STIX2 math font and Inconsolata monospaced font.^^J}
+	%
+    \RequirePackage[warnings-off={mathtools-colon,mathtools-overbracket}]{unicode-math}
+    % suppress tiresome warnings about lack of integration between mathtools and unicode-math
+    % unicode-math loads the fontspec package
+
+    \setmainfont{texgyreheros}[% Presumes these are system fonts! Available at: http://www.gust.org.pl/projects/e-foundry/tex-gyre
+		WordSpace = {1,1.0,1},
+		Extension = .otf,
+    	UprightFont = *-regular,
+    	ItalicFont = *-italic,
+    	BoldFont = *-bold,
+    	BoldItalicFont = *-bolditalic,
+		Numbers = Lining,
+    	Scale=0.91,
+	]        
+    \setsansfont{texgyreheros}[% Presumes these are system fonts! Available at: http://www.gust.org.pl/projects/e-foundry/tex-gyre
+		WordSpace = {1,1.0,1},
+		Extension = .otf,
+    	UprightFont = *-regular,
+    	ItalicFont = *-italic,
+    	BoldFont = *-bold,
+    	BoldItalicFont = *-bolditalic,
+		Numbers = Lining,
+    	Scale=0.91,
+	]        
+   \setmonofont{Inconsolatazi4}[% This otf font ships with the LaTeX Inconsolata package and is in CTAN https://ctan.org/tex-archive/fonts/inconsolata
+        Scale=1.05,
+        Extension = .otf,
+        UprightFont = *-Regular,
+        ItalicFont = *-Regular,% has no italic face
+        BoldFont = *-Bold, 
+    	BoldItalicFont = *-Bold,% has no bold italic face
+        RawFeature = {+ss01,+ss02,+ss03},
+    ]             
+    \setmathfont{STIXTwoMath-Regular}[% nice glyphs, but \mkern sometimes needed %% https://github.com/stipub/stixfonts
+    	Scale=MatchUppercase,
+    	Extension = .otf,
+		BoldFont = *,% STIX Two Math has no bold face
+%       Color=NavyBlue, 
+    	RawFeature = {+ss01, -ss02, -ss08},
+    ]
+    % ss01 -- switch calligraphic to script; +ss02 -- variants of g, u, v, w, z; +ss08 -- upright integrals
+    %    
+    \setmathfontface\mathbf{STIXTwoText-Bold.otf}[]% to not get Heros bold, https://github.com/stipub/stixfonts
+    \setmathfontface\mathit{STIXTwoText-Italic.otf}[]
+    \setmathfontface\mathrm{STIXTwoText-Regular.otf}[]% to get roman letters from STIX Two
+     %         
+    \newcommand*{\FRAC}[1]{{\addfontfeature{Fractions=On}#1}}% use OpenType feature for fractions, \FRAC{1/2} 
+\fi
