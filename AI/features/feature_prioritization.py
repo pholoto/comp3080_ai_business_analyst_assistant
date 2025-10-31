@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Any, Dict
 
 from .base import FeatureContext, FeatureResult
-from .llm_utils import request_json_response
+from .llm_utils import build_attachment_context, request_json_response
 
 
 @dataclass
@@ -31,6 +31,8 @@ class FeaturePrioritizationFeature:
         prompt = (
             "Consolidated artefacts:\n- Requirements: "
             f"{requirements}\n- User stories: {user_stories}\n\n"
+            "Referenced attachments:\n"
+            f"{build_attachment_context(ctx.session)}\n\n"
             "New considerations: "
             f"{user_input}"
         )

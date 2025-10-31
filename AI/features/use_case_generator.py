@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Any, Dict
 
 from .base import FeatureContext, FeatureResult
-from .llm_utils import request_json_response
+from .llm_utils import build_attachment_context, request_json_response
 
 
 @dataclass
@@ -30,6 +30,8 @@ class UseCaseGeneratorFeature:
         prompt = (
             "Known requirements backlog:\n"
             f"{requirements if requirements else 'No formal requirements yet.'}\n\n"
+            "Dataset from attachments:\n"
+            f"{build_attachment_context(ctx.session)}\n\n"
             "Additional guidance: "
             f"{user_input}"
         )

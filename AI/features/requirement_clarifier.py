@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Any, Dict
 
 from .base import FeatureContext, FeatureResult
-from .llm_utils import request_json_response
+from .llm_utils import build_attachment_context, request_json_response
 
 
 @dataclass
@@ -29,6 +29,8 @@ class RequirementClarifierFeature:
         prompt = (
             "Current project context and notes:\n"
             f"{ctx.session.get_state('project_overview', 'N/A')}\n\n"
+            "Supporting documents summary:\n"
+            f"{build_attachment_context(ctx.session)}\n\n"
             "New user input: "
             f"{user_input}\n\n"
             "If previous decisions exist, ensure you respect them."

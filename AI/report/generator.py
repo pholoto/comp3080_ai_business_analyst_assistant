@@ -169,6 +169,19 @@ class BAReportGenerator:
         else:
             add_paragraph("Engagement plan to be defined.")
 
+        add_heading("Attached Documents", level=1)
+        attachments = session.list_attachments()
+        if attachments:
+            add_paragraph(
+                f"Current strategies — Chunking: {session.chunking_strategy}, Indexing: {session.indexing_strategy}"
+            )
+            for attachment in attachments:
+                add_paragraph(
+                    f"• {attachment.filename} — {attachment.word_count} words, {attachment.size} bytes"
+                )
+        else:
+            add_paragraph("No supporting documents attached.")
+
         add_heading("Conversation Log", level=1)
         messages = session.memory.as_list()
         for message in messages:
@@ -179,7 +192,7 @@ class BAReportGenerator:
 
     def _add_numbered_list(
         self,
-        document: Document,
+    document,
         items: Iterable[str],
         *,
         prefix: str,

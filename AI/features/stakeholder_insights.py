@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Any, Dict
 
 from .base import FeatureContext, FeatureResult
-from .llm_utils import request_json_response
+from .llm_utils import build_attachment_context, request_json_response
 
 
 @dataclass
@@ -31,7 +31,10 @@ class StakeholderInsightsFeature:
             f"{ctx.session.get_state('project_overview', 'N/A')}\n"
             "Existing stakeholders: "
             f"{ctx.session.get_state('stakeholder_map', 'None yet')}\n"
-            "User prompt: {user_input}"
+            "Supporting attachments:\n"
+            f"{build_attachment_context(ctx.session)}\n"
+            "User prompt: "
+            f"{user_input}"
         )
         data: Dict[str, Any] = request_json_response(
             ctx.llm,

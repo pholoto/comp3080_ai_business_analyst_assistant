@@ -1,6 +1,7 @@
 """LLM client abstraction with optional Ollama support."""
 from __future__ import annotations
 
+import logging
 import os
 from dataclasses import dataclass
 from typing import Iterable, List, Mapping, Optional
@@ -52,6 +53,39 @@ class StubLLMClient(LLMClient):
             "[stub-model] Unable to contact external LLM. Input summary: "
             f"{last[:200]}"
         )
+
+
+class FailoverLLMClient(LLMClient):
+    """LLM client that wraps a primary backend with a resilient stub fallback."""
+
+    def __init__(self, primary: LLMClient, fallback: LLMClient) -> None:
+        self.primary = primary
+        self.fallback = fallback
+        self._logger = logging.getLogger(__name__)
+
+    def generate(
+        self,
+        messages: Iterable[LLMPrompt],
+        *,
+        temperature: float = 0.2,
+        max_tokens: int = 800,
+        extra: Optional[Mapping[str, object]] = None,
+    ) -> str:
+        try:
+            return self.primary.generate(
+                messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                extra=extra,
+            )
+        except Exception as exc:
+            self._logger.warning("Primary LLM failed (%s); falling back to stub.", exc)
+            return self.fallback.generate(
+                messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                extra=extra,
+            )
 
 
 class OllamaLLMClient(LLMClient):
@@ -113,7 +147,9 @@ class OllamaLLMClient(LLMClient):
 
 def get_default_client() -> LLMClient:
     """Return the default LLM client, falling back to the stub client."""
+    fallback = StubLLMClient()
     try:
-        return OllamaLLMClient()
+        primary = OllamaLLMClient()
     except Exception:
-        return StubLLMClient()
+        return fallback
+    return FailoverLLMClient(primary, fallback)

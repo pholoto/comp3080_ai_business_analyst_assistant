@@ -5,6 +5,7 @@ import json
 from typing import Any, Dict, Iterable, Sequence
 
 from ..llm import LLMClient, LLMPrompt
+from ..memory import Session
 
 
 def request_json_response(
@@ -36,3 +37,19 @@ def request_json_response(
     if "title" not in data:
         data["title"] = default_title
     return data
+
+
+def build_attachment_context(
+    session: Session,
+    *,
+    char_limit: int = 2000,
+) -> str:
+    """Return a concise textual digest of the session's attachments."""
+    digest = session.attachment_digest(char_limit=char_limit)
+    if not digest:
+        return "No supporting documents attached."
+    return (
+        f"Chunking strategy: {session.chunking_strategy}\n"
+        f"Indexing strategy: {session.indexing_strategy}\n"
+        f"Attached documents:\n{digest}"
+    )
