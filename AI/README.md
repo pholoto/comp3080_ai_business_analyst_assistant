@@ -17,10 +17,10 @@ Use the guide below if you are new to Git or Python.
 
 1. Install Git for Windows from https://git-scm.com/download/win.
 2. Open PowerShell and choose a folder for the project, e.g. `Documents`.
-3. Clone your repository (replace the URL with your fork or the team repo):
+3. Clone your repository:
 
    ```powershell
-   git clone <repository-url>
+   git clone https://github.com/pholoto/comp3080_ai_business_analyst_assistant.git
    cd comp3080_ai_business_analyst_assistant
    ```
 
