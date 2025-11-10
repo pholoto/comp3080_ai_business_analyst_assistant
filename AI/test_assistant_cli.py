@@ -42,13 +42,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--chunking",
         choices=sorted(available_chunkers()),
-        default=None,
+        default="all_in_one",
         help="Override the default chunking strategy for the session.",
     )
     parser.add_argument(
         "--indexing",
         choices=sorted(available_indexers()),
-        default=None,
+        default="faiss",
         help="Override the default indexing strategy for search results.",
     )
     parser.add_argument(
@@ -166,7 +166,9 @@ def _run_scripted_turns(session: Session, registry, llm, turns: Sequence[dict]) 
 
 def _interactive_loop(session: Session, registry, llm) -> None:
     print("\nAvailable commands: 'list', 'state', 'history', 'quit'.")
-    print("Type a feature key to run it (for example: requirement_clarifier).\n")
+    # Show the full feature catalog up-front so users can pick from all features
+    _print_feature_catalog(session, registry, llm)
+    print("Type a feature key to run it (or 'list' to show them again).\n")
     while True:
         try:
             choice = input("feature> ").strip()

@@ -22,8 +22,8 @@ class AllInOneChunker(ChunkingStrategy):
 class FixedSizeChunker(ChunkingStrategy):
     name: str = "fixed"
     description: str = "Fixed-length windows with configurable overlap."
-    chunk_size: int = 1200
-    overlap: int = 200
+    chunk_size: int = 512
+    overlap: int = 128
 
     def chunk(self, text: str) -> List[str]:
         cleaned = _normalise_text(text)
@@ -46,7 +46,7 @@ class FixedSizeChunker(ChunkingStrategy):
 class SemanticChunker(ChunkingStrategy):
     name: str = "semantic"
     description: str = "Heuristic semantic segmentation based on headings and paragraphs."
-    min_chunk_size: int = 400
+    min_chunk_size: int = 512
 
     def chunk(self, text: str) -> List[str]:
         cleaned_lines = [line.strip() for line in text.splitlines()]
