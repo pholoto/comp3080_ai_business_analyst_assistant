@@ -85,76 +85,115 @@ python -m AI
 ### Key endpoints
 
 - `POST /sessions` → create a new chat session  
-- `POST /sessions/{id}/chat` → run one of the six features  
-- `GET /sessions/{id}/transcript` → get conversation history  
-- `GET /sessions/{id}/state` → view accumulated artefacts and attachments  
-- `POST /sessions/{id}/attachments` → upload PDF, DOCX, or TXT files  
-- `GET /strategies` → list chunking/indexing options  
-- `POST /sessions/{id}/search` → retrieval over the current index  
-- `POST /sessions/{id}/evaluation` → compute Precision@k, Recall@k, MRR, NDCG@k  
+# AIBA – AI Business Analyst (AI module)
 
-The `ba_report_export` feature writes a DOCX report using the VinUni template in `back_end/templates/`, saving the output under `reports/`.
+The `AI/` package exposes the AIBA assistant as a FastAPI service plus a set of local testing tools. It bundles six expert features that share the same session memory:
 
----
+- `requirement_clarifier`
+- `use_case_generator`
+- `feature_prioritization`
+- `market_fit_analyzer`
+- `stakeholder_insights`
+- `ba_report_export`
 
-## 6. Benchmark chunking and indexing offline
+This README focuses on a minimal setup and how to test chunking and the AI output. The assistant uses the public MLVoca text-generation API by default, so no local LLM install is required.
 
-1. Place sample PDFs, DOCXs, or TXTs into `AI/sample_documents/`.  
-2. Run:
-   ```powershell
-   python -m AI.evaluate_chunking_indexing --documents AI/sample_documents
-   ```
-   Prints Precision@k, Recall@k, MRR, NDCG@k, and latency for each chunking/indexing combination.  
-3. Add flags to customize:
-   - `--queries my_queries.json` → custom evaluation prompts  
-   - `--chunkers fixed semantic` or `--indexers faiss` → narrow the matrix  
-   - `--top-k 8` → change retrieval depth  
-   - `--save-json results.json` → save metrics  
+## 1. Quick setup
 
----
+1. Install Git (if needed) and clone the repo:
 
-## 7. Try the assistant without HTTP
+```powershell
+cd $HOME\Documents
+git clone https://github.com/pholoto/comp3080_ai_business_analyst_assistant.git
+cd comp3080_ai_business_analyst_assistant
+```
 
-Run the console harness:
+2. Create and activate a virtual environment:
+
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+```
+
+3. Install Python dependencies:
+
+```powershell
+pip install -r AI/requirements.txt
+```
+
+Notes:
+- By default the app falls back to a deterministic stub client when an external LLM is not reachable. The repository is configured to use the public MLVoca API (`https://mlvoca.com/api/generate`) so you do not need to run or configure a local LLM server.
+- If you need to override the default, set `MLVOCA_BASE_URL` and/or `MLVOCA_MODEL` in your environment.
+
+## 2. Run the FastAPI server
+
+```powershell
+python -m AI
+```
+
+- The app listens on `http://127.0.0.1:8000` by default.
+- Visit `http://127.0.0.1:8000/docs` for the interactive Swagger UI.
+
+Key endpoints:
+
+- `POST /sessions` → create a new chat session
+- `POST /sessions/{id}/chat` → run one of the features (supply `feature` key in payload)
+- `GET /sessions/{id}/transcript` → get conversation history
+- `GET /sessions/{id}/state` → view accumulated artefacts and attachments
+- `POST /sessions/{id}/attachments` → upload PDF, DOCX, or TXT files
+- `GET /strategies` → list chunking/indexing options
+- `POST /sessions/{id}/search` → retrieval over the current index
+- `POST /sessions/{id}/evaluation` → compute Precision@k, Recall@k, MRR, NDCG@k
+
+The `ba_report_export` feature writes a DOCX report using the VinUni template in `back_end/templates/` and saves output under `reports/`.
+
+## 3. Test chunking and indexing (offline benchmark)
+
+1. Place sample PDFs, DOCXs or TXTs into `AI/sample_documents/`.
+2. Run the evaluation harness:
+
+```powershell
+python -m AI.evaluate_chunking_indexing --documents AI/sample_documents
+```
+
+This prints Precision@k, Recall@k, MRR, NDCG@k and latency for each chunking/indexing combination. Useful flags:
+
+- `--queries my_queries.json` → use custom evaluation prompts
+- `--chunkers fixed semantic` → evaluate a subset of chunkers
+- `--indexers faiss` → evaluate only the FAISS indexer
+- `--top-k 8` → change retrieval depth
+- `--save-json results.json` → save metrics to a file
+
+## 4. Test AI output and features (local CLI)
+
+You can exercise features without running the HTTP server using the console harness. This is useful for quickly checking how features format their JSON output and ensuring the assistant returns clean structured data.
 
 ```powershell
 python -m AI.test_assistant_cli --attachments AI/sample_documents
 ```
 
-- Enter `list` to see feature keys, then choose one (e.g. `stakeholder_insights`).  
-- Provide a message and review the JSON payload returned.  
-- Type `state` to inspect stored requirements, assumptions, and attachments.  
-- Replay a canned dialogue with:
-  ```powershell
-  python -m AI.test_assistant_cli --script tests/conversation.json
-  ```
-  where the JSON file contains:
-  ```json
-  {"turns": [{"feature": "requirement_clarifier", "message": "..."}]}
-  ```
+- Enter `list` to show available feature keys, then type a feature key (for example `requirement_clarifier`) and provide a message when prompted.
+- The CLI returns the feature output. The assistant code attempts to strip internal thinking traces and recover structured JSON where requested.
+- Use `state` to inspect stored requirements, assumptions and attachments in the session.
+
+For scripted runs, pass `--script path/to/script.json` where `script.json` contains a `turns` list of `{"feature":"...","message":"..."}` objects.
+
+## 5. Retrieval strategies at a glance
+
+- Chunking:
+  - `all_in_one` → single chunk per document (baseline)
+  - `fixed` → fixed-size windows with overlap
+  - `semantic` → chunk according to headings and paragraph boundaries
+
+- Indexing:
+  - `none` → linear substring search
+  - `faiss` → approximate nearest neighbours over embeddings
+  - `llama_index` → document/section/chunk scoring layers
+
+## 6. Sample documents
+
+Store example artefacts under `AI/sample_documents/`. Both the FastAPI endpoints and the local CLI read from the same folder.
 
 ---
 
-## Retrieval strategies at a glance
-
-- **Chunking**  
-  - `all_in_one` → single chunk per document (baseline)  
-  - `fixed` → 1,200-character windows with 200-character overlap  
-  - `semantic` → align chunks with headings and paragraphs  
-
-- **Indexing**  
-  - `none` → linear substring search  
-  - `faiss` → cosine similarity over lightweight embeddings  
-  - `llama_index` → three-level scorer (document, section, chunk)  
-
----
-
-## Sample documents
-
-Store any fake artefacts under `AI/sample_documents/`. Both FastAPI uploads and local CLIs read from the same folder.
-
----
-
-This version assumes the user has enough disk space and memory, so the Ollama setup is straightforward: install, pull a model, run it, and point the app to it.  
-
-I can also prepare a **quick-start checklist** version of this README if you’d like something even shorter and more action-oriented.
+If you want, I can also add a one-line quick-start checklist or an example `curl` invocation to call a feature via the HTTP API.

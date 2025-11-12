@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, Iterable, Sequence
+import re
+from json import JSONDecodeError
+from typing import Any, Dict, Sequence
 
 from ..llm import LLMClient, LLMPrompt
 from ..memory import Session
@@ -30,13 +32,59 @@ def request_json_response(
     )
     if not raw:
         return {"title": default_title, "summary": ""}
-    try:
-        data = json.loads(raw)
-    except (json.JSONDecodeError, TypeError):
-        data = {"title": default_title, "summary": raw}
+    cleaned = _sanitize_model_output(raw)
+    data = _load_json_loose(cleaned)
+    if data is None:
+        # Fallback to whatever the model returned after removing thinking traces
+        return {"title": default_title, "summary": cleaned}
     if "title" not in data:
         data["title"] = default_title
     return data
+
+
+def _sanitize_model_output(text: str) -> str:
+    if not text:
+        return ""
+    # Remove thinking blocks the provider may emit.
+    cleaned = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL | re.IGNORECASE)
+    # Strip markdown fences and conversational prefixes.
+    cleaned = re.sub(r"```[a-zA-Z]*", "", cleaned)
+    cleaned = cleaned.replace("```", "")
+    cleaned = cleaned.strip()
+    return cleaned
+
+
+def _load_json_loose(text: str) -> Dict[str, Any] | None:
+    if not text:
+        return None
+    try:
+        return json.loads(text)
+    except (JSONDecodeError, TypeError):
+        pass
+    decoder = json.JSONDecoder()
+    # Try parsing from the first JSON object occurrence in the text.
+    brace_index = text.find("{")
+    if brace_index == -1:
+        return None
+    snippet = text[brace_index:]
+    try:
+        obj, _ = decoder.raw_decode(snippet)
+        if isinstance(obj, dict):
+            return obj
+    except JSONDecodeError:
+        pass
+    # Attempt to locate JSON wrapped inside larger text via regex.
+    match = re.search(r"\{.*\}", text, flags=re.DOTALL)
+    if not match:
+        return None
+    try:
+        candidate = match.group(0)
+        parsed = json.loads(candidate)
+        if isinstance(parsed, dict):
+            return parsed
+    except JSONDecodeError:
+        return None
+    return None
 
 
 def build_attachment_context(

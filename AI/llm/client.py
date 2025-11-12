@@ -1,15 +1,15 @@
-"""LLM client abstraction with optional Ollama support."""
+"""LLM client abstraction with optional MLVoca support."""
 from __future__ import annotations
 
 import logging
 import os
 from dataclasses import dataclass
-from typing import Iterable, List, Mapping, Optional
+from typing import Iterable, Mapping, Optional
 
 import requests
 
-DEFAULT_OLLAMA_BASE_URL = "http://localhost:11434"
-DEFAULT_OLLAMA_MODEL = "llama3.1"
+DEFAULT_MLVOCA_BASE_URL = "https://mlvoca.com/api"
+DEFAULT_MLVOCA_MODEL = "deepseek-r1:1.5b"
 
 
 @dataclass
@@ -88,68 +88,84 @@ class FailoverLLMClient(LLMClient):
             )
 
 
-class OllamaLLMClient(LLMClient):
-    """Client that talks to a local Ollama server."""
+class MLVocaLLMClient(LLMClient):
+    """Client that talks to the public MLVoca text generation API."""
 
     def __init__(
         self,
         *,
         base_url: str | None = None,
         model: str | None = None,
+        request_timeout: int = 120,
     ) -> None:
-        self.base_url = base_url or os.getenv("OLLAMA_BASE_URL", DEFAULT_OLLAMA_BASE_URL)
-        self.model = model or os.getenv("OLLAMA_MODEL", DEFAULT_OLLAMA_MODEL)
-        self._check_server()
+        self.base_url = base_url or os.getenv("MLVOCA_BASE_URL", DEFAULT_MLVOCA_BASE_URL)
+        self.model = model or os.getenv("MLVOCA_MODEL", DEFAULT_MLVOCA_MODEL)
+        self.request_timeout = request_timeout
 
-    def _check_server(self) -> None:
-        try:
-            response = requests.get(f"{self.base_url}/api/tags", timeout=5)
-            response.raise_for_status()
-        except Exception as exc:  # pragma: no cover - environment check
-            raise RuntimeError(
-                "Ollama server not reachable. Ensure Ollama is running locally."
-            ) from exc
+    def _format_messages(self, messages: Iterable[LLMPrompt]) -> str:
+        parts = []
+        for prompt in messages:
+            role = prompt.role.lower()
+            if role == "system":
+                prefix = "System"
+            elif role == "assistant":
+                prefix = "Assistant"
+            else:
+                prefix = "User"
+            cleaned = prompt.content.strip()
+            if cleaned:
+                parts.append(f"{prefix}: {cleaned}")
+        return "\n\n".join(parts)
 
     def generate(
         self,
         messages: Iterable[LLMPrompt],
         *,
         temperature: float = 0.2,
-        max_tokens: int = 800,
+        max_tokens: int = 800,  # Unused but kept for signature compatibility.
         extra: Optional[Mapping[str, object]] = None,
     ) -> str:
-        payload_messages = [
-            {"role": prompt.role, "content": prompt.content} for prompt in messages
-        ]
-        options = {"temperature": temperature, "num_predict": max_tokens}
+        prompt_text = self._format_messages(messages)
+        if not prompt_text:
+            prompt_text = "Assistant:"
+
+        payload: dict[str, object] = {
+            "model": self.model,
+            "prompt": prompt_text,
+            "stream": False,
+        }
+
+        options: dict[str, object] = {"temperature": temperature}
         if extra:
-            # Merge supported options from extra, if provided.
             if "options" in extra and isinstance(extra["options"], Mapping):
                 options.update(extra["options"])  # type: ignore[arg-type]
             if "model" in extra:
-                self.model = str(extra["model"])
-        payload = {
-            "model": self.model,
-            "messages": payload_messages,
-            "stream": False,
-            "options": options,
-        }
+                payload["model"] = str(extra["model"])
+            if "response_format" in extra and isinstance(extra["response_format"], Mapping):
+                fmt = extra["response_format"].get("type")
+                if fmt == "json_object":
+                    payload["format"] = "json"
+            for key in ("suffix", "format", "system", "template", "raw", "stream"):
+                if key in extra:
+                    payload[key] = extra[key]
+        if options:
+            payload["options"] = options
+
         response = requests.post(
-            f"{self.base_url}/api/chat",
+            f"{self.base_url}/generate",
             json=payload,
-            timeout=120,
+            timeout=self.request_timeout,
         )
         response.raise_for_status()
         data = response.json()
-        message = data.get("message") or {}
-        return message.get("content", "")
+        return str(data.get("response", ""))
 
 
 def get_default_client() -> LLMClient:
     """Return the default LLM client, falling back to the stub client."""
     fallback = StubLLMClient()
     try:
-        primary = OllamaLLMClient()
+        primary = MLVocaLLMClient()
     except Exception:
         return fallback
     return FailoverLLMClient(primary, fallback)
