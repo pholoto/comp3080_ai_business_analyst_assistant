@@ -4,6 +4,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict
 
+from ..prompts import (STAKEHOLDER_INSIGHTS_SYSTEM_PROMPT,
+                       build_stakeholder_insights_user_prompt)
 from .base import FeatureContext, FeatureResult
 from .llm_utils import build_attachment_context, request_json_response
 
@@ -20,21 +22,14 @@ class StakeholderInsightsFeature:
     def run(self, user_input: str, *, context: FeatureContext | None = None) -> FeatureResult:
         ctx = context or self.context
         history = ctx.session.memory.as_context()
-        template = (
-            "Operate as an AI Business Analyst building a stakeholder map. Produce JSON with keys: "
-            "title, summary, stakeholder_map (list of objects with stakeholder, influence, interest, "
-            "needs, success_metrics), engagement_plan (list of strings), and communication_cadence "
-            "(list of objects with stakeholder, channel, frequency, owner)."
-        )
-        prompt = (
-            "Project summary: "
-            f"{ctx.session.get_state('project_overview', 'N/A')}\n"
-            "Existing stakeholders: "
-            f"{ctx.session.get_state('stakeholder_map', 'None yet')}\n"
-            "Supporting attachments:\n"
-            f"{build_attachment_context(ctx.session)}\n"
-            "User prompt: "
-            f"{user_input}"
+        project_overview = ctx.session.get_state("project_overview", "N/A")
+        stakeholder_map = ctx.session.get_state("stakeholder_map", "None yet")
+        template = STAKEHOLDER_INSIGHTS_SYSTEM_PROMPT
+        prompt = build_stakeholder_insights_user_prompt(
+            project_overview=project_overview,
+            stakeholder_map=stakeholder_map,
+            attachments=build_attachment_context(ctx.session),
+            user_input=user_input,
         )
         data: Dict[str, Any] = request_json_response(
             ctx.llm,

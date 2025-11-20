@@ -4,6 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict
 
+from ..prompts import USE_CASE_SYSTEM_PROMPT, build_use_case_user_prompt
 from .base import FeatureContext, FeatureResult
 from .llm_utils import build_attachment_context, request_json_response
 
@@ -21,19 +22,12 @@ class UseCaseGeneratorFeature:
         ctx = context or self.context
         history = ctx.session.memory.as_context()
         requirements = ctx.session.get_state("requirements")
-        template = (
-            "You are an AI Business Analyst. Produce a JSON object with keys: title, summary, "
-            "user_stories (list of objects with fields id, role, goal, benefit), use_case_flows "
-            "(list of objects with name, primary_path, alternate_paths), and acceptance_criteria "
-            "(list of strings). Base your answer on the requirements and conversation."
-        )
-        prompt = (
-            "Known requirements backlog:\n"
-            f"{requirements if requirements else 'No formal requirements yet.'}\n\n"
-            "Dataset from attachments:\n"
-            f"{build_attachment_context(ctx.session)}\n\n"
-            "Additional guidance: "
-            f"{user_input}"
+        requirements_context = requirements if requirements else "No formal requirements yet."
+        template = USE_CASE_SYSTEM_PROMPT
+        prompt = build_use_case_user_prompt(
+            requirements=requirements_context,
+            attachments=build_attachment_context(ctx.session),
+            user_input=user_input,
         )
         data: Dict[str, Any] = request_json_response(
             ctx.llm,

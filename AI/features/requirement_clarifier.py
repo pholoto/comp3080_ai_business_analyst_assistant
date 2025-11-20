@@ -4,6 +4,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict
 
+from ..prompts import (REQUIREMENT_CLARIFIER_SYSTEM_PROMPT,
+                       build_requirement_clarifier_user_prompt)
 from .base import FeatureContext, FeatureResult
 from .llm_utils import build_attachment_context, request_json_response
 
@@ -20,20 +22,11 @@ class RequirementClarifierFeature:
     def run(self, user_input: str, *, context: FeatureContext | None = None) -> FeatureResult:
         ctx = context or self.context
         history = ctx.session.memory.as_context()
-        template = (
-            "You are an AI Business Analyst helping student teams refine their project idea. "
-            "Generate a JSON object with keys: title, summary, clarifying_questions (list of "
-            "strings), assumptions (list of strings), and requirement_backlog (list of objects "
-            "with fields id, requirement, rationale). Use the project context provided."
-        )
-        prompt = (
-            "Current project context and notes:\n"
-            f"{ctx.session.get_state('project_overview', 'N/A')}\n\n"
-            "Supporting documents summary:\n"
-            f"{build_attachment_context(ctx.session)}\n\n"
-            "New user input: "
-            f"{user_input}\n\n"
-            "If previous decisions exist, ensure you respect them."
+        template = REQUIREMENT_CLARIFIER_SYSTEM_PROMPT
+        prompt = build_requirement_clarifier_user_prompt(
+            project_overview=ctx.session.get_state("project_overview", "N/A"),
+            attachments=build_attachment_context(ctx.session),
+            user_input=user_input,
         )
         data: Dict[str, Any] = request_json_response(
             ctx.llm,

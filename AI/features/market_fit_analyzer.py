@@ -4,6 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict
 
+from ..prompts import MARKET_FIT_SYSTEM_PROMPT, build_market_fit_user_prompt
 from .base import FeatureContext, FeatureResult
 from .llm_utils import build_attachment_context, request_json_response
 
@@ -20,21 +21,14 @@ class MarketFitAnalyzerFeature:
     def run(self, user_input: str, *, context: FeatureContext | None = None) -> FeatureResult:
         ctx = context or self.context
         history = ctx.session.memory.as_context()
-        template = (
-            "You are an AI strategist. Produce a JSON object with keys: title, summary, "
-            "competitive_landscape (list of objects with name, positioning, strengths, gaps), "
-            "unique_value_proposition (string), target_segments (list of objects with segment, needs, "
-            "fit_score), and go_to_market_ideas (list of strings). Reference prior artefacts to maintain alignment."
-        )
-        prompt = (
-            "Project overview: "
-            f"{ctx.session.get_state('project_overview', 'Unknown project')}\n"
-            "Prioritised features: "
-            f"{ctx.session.get_state('prioritised_features', 'Not available')}\n"
-            "Supporting attachments:\n"
-            f"{build_attachment_context(ctx.session)}\n"
-            "Additional research prompt: "
-            f"{user_input}"
+        project_overview = ctx.session.get_state("project_overview", "Unknown project")
+        prioritised_features = ctx.session.get_state("prioritised_features", "Not available")
+        template = MARKET_FIT_SYSTEM_PROMPT
+        prompt = build_market_fit_user_prompt(
+            project_overview=project_overview,
+            prioritised_features=prioritised_features,
+            attachments=build_attachment_context(ctx.session),
+            user_input=user_input,
         )
         data: Dict[str, Any] = request_json_response(
             ctx.llm,

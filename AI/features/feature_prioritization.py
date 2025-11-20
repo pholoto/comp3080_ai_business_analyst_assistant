@@ -4,6 +4,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict
 
+from ..prompts import (FEATURE_PRIORITISATION_SYSTEM_PROMPT,
+                       build_feature_prioritisation_user_prompt)
 from .base import FeatureContext, FeatureResult
 from .llm_utils import build_attachment_context, request_json_response
 
@@ -22,19 +24,12 @@ class FeaturePrioritizationFeature:
         history = ctx.session.memory.as_context()
         requirements = ctx.session.get_state("requirements") or []
         user_stories = ctx.session.get_state("user_stories") or []
-        template = (
-            "Act as an AI Business Analyst performing MoSCoW prioritisation. Return a JSON "
-            "object with keys: title, summary, prioritised_features (object with keys must, should, "
-            "could, wont; each value is list of objects with fields name, rationale, dependencies), "
-            "and release_plan (list of strings). Follow existing constraints from the conversation."
-        )
-        prompt = (
-            "Consolidated artefacts:\n- Requirements: "
-            f"{requirements}\n- User stories: {user_stories}\n\n"
-            "Referenced attachments:\n"
-            f"{build_attachment_context(ctx.session)}\n\n"
-            "New considerations: "
-            f"{user_input}"
+        template = FEATURE_PRIORITISATION_SYSTEM_PROMPT
+        prompt = build_feature_prioritisation_user_prompt(
+            requirements=requirements,
+            user_stories=user_stories,
+            attachments=build_attachment_context(ctx.session),
+            user_input=user_input,
         )
         data: Dict[str, Any] = request_json_response(
             ctx.llm,
