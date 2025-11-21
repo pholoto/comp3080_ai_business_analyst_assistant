@@ -16,6 +16,10 @@ class RagConfig:
     chunk_overlap: int = 128
     embedding_model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
     top_k: int = 8
+    max_context_chars: int = 4000
+    score_threshold: float | None = 0.25
+    recency_boost_days: int | None = 30
+    recency_boost_weight: float = 0.05
 
     def ensure_directories(self) -> None:
         """Ensure all filesystem locations exist."""

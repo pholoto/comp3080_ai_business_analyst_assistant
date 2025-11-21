@@ -77,6 +77,25 @@ class ResponseGenerator:
             max_tokens=max_tokens,
         )
 
+    def call_llm(
+        self,
+        *,
+        system_prompt: str,
+        user_message: str,
+        temperature: float = 0.2,
+        max_tokens: int = 700,
+    ) -> str:
+        """Directly invoke the underlying LLM with explicit prompt strings."""
+        messages = [
+            self._prompt_cls(role="system", content=system_prompt.strip()),
+            self._prompt_cls(role="user", content=user_message.strip()),
+        ]
+        return self.llm_client.generate(
+            messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+
     def _format_context(self, contexts: Sequence[RetrievalResult]) -> str:
         if not contexts:
             return "[no matching context retrieved]"

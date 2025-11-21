@@ -4,8 +4,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict
 
-from ..prompts import (STAKEHOLDER_INSIGHTS_SYSTEM_PROMPT,
-                       build_stakeholder_insights_user_prompt)
+from common.prompts import (STAKEHOLDER_INSIGHTS_SYSTEM_PROMPT,
+                            build_stakeholder_insights_user_prompt)
+
 from .base import FeatureContext, FeatureResult
 from .llm_utils import build_attachment_context, request_json_response
 

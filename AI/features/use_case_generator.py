@@ -4,7 +4,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict
 
-from ..prompts import USE_CASE_SYSTEM_PROMPT, build_use_case_user_prompt
+from common.prompts import USE_CASE_SYSTEM_PROMPT, build_use_case_user_prompt
+
 from .base import FeatureContext, FeatureResult
 from .llm_utils import build_attachment_context, request_json_response
 

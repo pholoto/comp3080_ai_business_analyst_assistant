@@ -3,9 +3,10 @@ from __future__ import annotations
 
 import importlib
 import json
+from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Sequence
+from typing import Any, Dict, List, Sequence, cast
 
 import numpy as np
 
@@ -163,4 +164,47 @@ class FaissVectorStore:
             raise ImportError("faiss-cpu must be installed to use FaissVectorStore") from exc
 
 
-__all__ = ["FaissVectorStore", "VectorHit"]
+class InMemoryVectorStore:
+    """Simple numpy-based vector store used as a lightweight fallback."""
+
+    def __init__(self) -> None:
+        self._entries: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+
+    def add_chunks(
+        self,
+        user_id: str,
+        chunks: Sequence[DocumentChunk],
+        embeddings: np.ndarray,
+    ) -> None:
+        for chunk, vector in zip(chunks, embeddings):
+            metadata = dict(chunk.metadata.to_dict())
+            metadata["text"] = chunk.text
+            self._entries[user_id].append(
+                {
+                    "vector": np.asarray(vector, dtype=np.float32),
+                    "metadata": metadata,
+                }
+            )
+
+    def search(
+        self,
+        user_id: str,
+        query_embedding: np.ndarray,
+        *,
+        top_k: int = 5,
+    ) -> List[VectorHit]:
+        records = self._entries.get(user_id, [])
+        if not records:
+            return []
+        query_vec = np.asarray(query_embedding, dtype=np.float32).ravel()
+        hits: List[VectorHit] = []
+        for record in records:
+            vector = cast(np.ndarray, record["vector"])
+            metadata = cast(Dict[str, Any], record["metadata"])
+            score = float(np.dot(vector, query_vec))
+            hits.append(VectorHit(score=score, metadata=dict(metadata)))
+        hits.sort(key=lambda item: item.score, reverse=True)
+        return hits[:top_k]
+
+
+__all__ = ["FaissVectorStore", "VectorHit", "InMemoryVectorStore"]

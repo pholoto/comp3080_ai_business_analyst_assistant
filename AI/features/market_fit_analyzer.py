@@ -4,7 +4,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict
 
-from ..prompts import MARKET_FIT_SYSTEM_PROMPT, build_market_fit_user_prompt
+from common.prompts import (MARKET_FIT_SYSTEM_PROMPT,
+                            build_market_fit_user_prompt)
+
 from .base import FeatureContext, FeatureResult
 from .llm_utils import build_attachment_context, request_json_response
 

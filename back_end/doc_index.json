@@ -1,1 +1,43 @@
-{}
+{
+  "demo-product-team": [
+    {
+      "document_id": "91e1fb0d4c684ba8abbd2e5a9cc0b0c3",
+      "user_id": "demo-product-team",
+      "original_name": "Federated Domain Generalization A Survey.pdf",
+      "stored_name": "91e1fb0d4c684ba8abbd2e5a9cc0b0c3.pdf",
+      "stored_path": "D:\\comp3080_ai_business_analyst_assistant\\back_end\\data\\demo-product-team\\91e1fb0d4c684ba8abbd2e5a9cc0b0c3.pdf",
+      "mime_type": "application/pdf",
+      "checksum": "ce025821f691f90dc763b6c28394633c8e3d732d3551f3f13b5fd5eab30025a1",
+      "tags": [
+        "federated",
+        "learning",
+        "survey"
+      ],
+      "created_at": "2025-11-21T17:21:01.632489+00:00"
+    }
+  ],
+  "simulated_user": [
+    {
+      "document_id": "3045bd08690c4e4e8ebe446621b430f2",
+      "user_id": "simulated_user",
+      "original_name": "FEDAVG Communication-Efficient Learning of Deep Networks.pdf",
+      "stored_name": "3045bd08690c4e4e8ebe446621b430f2.pdf",
+      "stored_path": "D:\\comp3080_ai_business_analyst_assistant\\back_end\\data\\simulated_user\\3045bd08690c4e4e8ebe446621b430f2.pdf",
+      "mime_type": "application/pdf",
+      "checksum": "2faf5593d9db413dee96a9be6ab9527cb0413b34fd5024aa60db3a5ad5795384",
+      "tags": [],
+      "created_at": "2025-11-21T18:17:53.679880+00:00"
+    },
+    {
+      "document_id": "7f97d900f05a465d99e18f38e28b0a19",
+      "user_id": "simulated_user",
+      "original_name": "Federated Domain Generalization A Survey.pdf",
+      "stored_name": "7f97d900f05a465d99e18f38e28b0a19.pdf",
+      "stored_path": "D:\\comp3080_ai_business_analyst_assistant\\back_end\\data\\simulated_user\\7f97d900f05a465d99e18f38e28b0a19.pdf",
+      "mime_type": "application/pdf",
+      "checksum": "ce025821f691f90dc763b6c28394633c8e3d732d3551f3f13b5fd5eab30025a1",
+      "tags": [],
+      "created_at": "2025-11-21T18:17:53.967860+00:00"
+    }
+  ]
+}

@@ -16,6 +16,7 @@ class RankingEntry:
     document_id: str
     source_name: str
     score: float
+    chunk_index: int
     preview: str
 
     def to_dict(self) -> dict[str, object]:
@@ -46,6 +47,7 @@ class SimilarityRanker:
                     document_id=document_id,
                     source_name=str(source_name),
                     score=float(result.score),
+                    chunk_index=int(result.metadata.get("chunk_index", idx - 1)),
                     preview=preview,
                 )
             )

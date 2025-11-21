@@ -1,20 +1,26 @@
 """FastAPI application exposing the backend RAG capabilities."""
 from __future__ import annotations
 
+import logging
 from typing import Any, Dict, List, Optional, cast
 
 from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from AI.features import FeatureContext, build_default_registry
+from AI.memory import Session, SessionManager
+from AI.schemas import FeatureName
+
 from .rag import (ContextRetriever, DocumentStore, EmbeddingGenerator,
-                  FaissVectorStore, ResponseGenerator, SimilarityRanker,
-                  TextSplitter)
+                  FaissVectorStore, InMemoryVectorStore, RagPipeline, RagQuery,
+                  ResponseGenerator, SimilarityRanker, TextSplitter)
 from .rag.agents import (IdeationAgent, IdeationRequest, ProgressAgent,
                          ProgressRequest)
 from .rag.config import DEFAULT_CONFIG
 from .rag.document_store import (DuplicateDocumentError,
                                  UnsupportedDocumentError)
+from .rag.prompts import build_context_block
 
 app = FastAPI(title="AI Business Analyst Assistant Backend", version="0.1.0")
 app.add_middleware(
@@ -24,6 +30,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+LOGGER = logging.getLogger(__name__)
 
 
 class DocumentMetadataModel(BaseModel):
@@ -48,6 +56,7 @@ class RankingEntryModel(BaseModel):
     document_id: str
     source_name: str
     score: float
+    chunk_index: int
     preview: str
 
 
@@ -79,6 +88,53 @@ class ProgressResponseModel(BaseModel):
     reference_date: Optional[str]
 
 
+class CitationModel(BaseModel):
+    source: str
+    chunk_id: str
+    chunk_index: int
+    score: float
+
+
+class RagQueryPayload(BaseModel):
+    question: str
+    top_k: Optional[int] = Field(None, ge=1, le=50)
+    tags: Optional[List[str]] = None
+    score_threshold: Optional[float] = Field(None, ge=0, le=1)
+    recency_boost_days: Optional[int] = Field(None, ge=1)
+    recency_boost_weight: Optional[float] = Field(None, ge=0, le=1)
+    system_prompt: Optional[str] = None
+    task_prompt: Optional[str] = None
+    guardrails: Optional[str] = None
+
+
+class RagPipelineResponseModel(BaseModel):
+    answer: str
+    citations: List[CitationModel]
+    used_context: List[dict]
+    prompt_template: str
+    timings_ms: Dict[str, float]
+
+
+class ChatPayload(BaseModel):
+    feature: FeatureName = Field(..., description="AI feature to engage")
+    message: str = Field(..., min_length=1, description="User question or instruction")
+    metadata: Optional[Dict[str, Any]] = Field(None, description="Optional metadata persisted to the session state")
+    use_rag: bool = Field(True, description="Whether to run document retrieval before answering")
+    rag_top_k: Optional[int] = Field(None, ge=1, le=50)
+    rag_tags: Optional[List[str]] = Field(None, description="Optional tag filters for retrieval")
+    rag_score_threshold: Optional[float] = Field(None, ge=0, le=1)
+
+
+class CombinedChatResponseModel(BaseModel):
+    feature: FeatureName
+    title: str
+    summary: str
+    data: Dict[str, Any]
+    session_state: Dict[str, Any]
+    citations: List[CitationModel]
+    context_snippets: List[Dict[str, Any]]
+
+
 class RagDependencies:
     """Container that wires together the reusable RAG components."""
 
@@ -88,7 +144,11 @@ class RagDependencies:
         self.document_store = DocumentStore(self.config)
         self.text_splitter = TextSplitter(self.config)
         self.embedding_generator = EmbeddingGenerator(self.config)
-        self.vector_store = FaissVectorStore(self.config)
+        try:
+            self.vector_store = FaissVectorStore(self.config)
+        except ImportError:
+            # Fall back to an in-memory index so local dev & tests work without faiss-cpu.
+            self.vector_store = InMemoryVectorStore()
         self.retriever = ContextRetriever(
             embedding_generator=self.embedding_generator,
             vector_store=self.vector_store,
@@ -108,6 +168,47 @@ class RagDependencies:
             ranker=self.ranker,
             config=self.config,
         )
+        self.pipeline = RagPipeline(
+            document_store=self.document_store,
+            text_splitter=self.text_splitter,
+            embedding_generator=self.embedding_generator,
+            vector_store=self.vector_store,
+            retriever=self.retriever,
+            generator=self.generator,
+            ranker=self.ranker,
+            config=self.config,
+        )
+        self.session_manager = SessionManager()
+        self.feature_registry = build_default_registry()
+        self._user_sessions: Dict[str, str] = {}
+
+    def get_or_create_session(self, user_id: str) -> Session:
+        session_id = self._user_sessions.get(user_id)
+        if session_id:
+            try:
+                return self.session_manager.get_session(session_id)
+            except KeyError:
+                pass
+        session = self.session_manager.create_session()
+        self._user_sessions[user_id] = session.session_id
+        session.set_state("user_id", user_id)
+        return session
+
+    def attach_document_to_session(
+        self,
+        *,
+        user_id: str,
+        filename: str,
+        content_type: str,
+        data: bytes,
+    ) -> str:
+        session = self.get_or_create_session(user_id)
+        attachment = session.add_attachment(
+            filename=filename,
+            content_type=content_type or "application/octet-stream",
+            data=data,
+        )
+        return attachment.attachment_id
 
 
 _DEPENDENCIES = RagDependencies()
@@ -151,10 +252,10 @@ async def ingest_document(
     tag_list = _parse_tags(tags)
     filename = file.filename or "uploaded_file"
     try:
-        record = deps.document_store.ingest_file(
-            user_id,
-            filename,
-            raw_bytes,
+        ingest_result = deps.pipeline.ingest_document(
+            user_id=user_id,
+            filename=filename,
+            data=raw_bytes,
             tags=tag_list,
         )
     except DuplicateDocumentError as exc:
@@ -162,22 +263,22 @@ async def ingest_document(
     except UnsupportedDocumentError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    chunks = deps.text_splitter.split_record(record)
-    embeddings = deps.embedding_generator.embed_chunks(chunks)
-    deps.vector_store.add_chunks(user_id, chunks, embeddings)
-
+    metadata = dict(ingest_result.metadata)
+    metadata.pop("user_id", None)
+    typed_metadata = cast(Dict[str, Any], metadata)
+    try:
+        attachment_id = deps.attach_document_to_session(
+            user_id=user_id,
+            filename=filename,
+            content_type=file.content_type or "application/octet-stream",
+            data=raw_bytes,
+        )
+        typed_metadata["session_attachment_id"] = attachment_id
+    except Exception as exc:  # pragma: no cover - attachment failures should not block ingestion
+        LOGGER.warning("Unable to attach document to conversational session: %s", exc)
     return DocumentIngestResponse(
-        metadata=DocumentMetadataModel(
-            document_id=record.metadata.document_id,
-            original_name=record.metadata.original_name,
-            stored_name=record.metadata.stored_name,
-            stored_path=record.metadata.stored_path,
-            mime_type=record.metadata.mime_type,
-            checksum=record.metadata.checksum,
-            tags=list(record.metadata.tags),
-            created_at=record.metadata.created_at,
-        ),
-        chunks_indexed=len(chunks),
+        metadata=DocumentMetadataModel(**typed_metadata),
+        chunks_indexed=ingest_result.chunks_indexed,
     )
 
 
@@ -230,10 +331,127 @@ def analyze_progress(
     )
 
 
+@app.post("/users/{user_id}/rag", response_model=RagPipelineResponseModel)
+def run_rag_pipeline(
+    user_id: str,
+    payload: RagQueryPayload,
+    deps: RagDependencies = Depends(get_dependencies),
+):
+    query = RagQuery(
+        user_id=user_id,
+        question=payload.question,
+        top_k=payload.top_k,
+        tags=tuple(payload.tags) if payload.tags else None,
+        score_threshold=payload.score_threshold,
+        recency_boost_days=payload.recency_boost_days,
+        recency_boost_weight=payload.recency_boost_weight,
+        system_prompt=payload.system_prompt,
+        task_prompt=payload.task_prompt,
+        guardrails=payload.guardrails,
+    )
+    result = deps.pipeline.run(query)
+    citation_models = [
+        CitationModel(
+            source=citation.source,
+            chunk_id=citation.chunk_id,
+            chunk_index=citation.chunk_index,
+            score=citation.score,
+        )
+        for citation in result.citations
+    ]
+    return RagPipelineResponseModel(
+        answer=result.answer,
+        citations=citation_models,
+        used_context=result.used_context,
+        prompt_template=result.prompt_template,
+        timings_ms=result.timings_ms,
+    )
+
+
+@app.post("/users/{user_id}/chat", response_model=CombinedChatResponseModel)
+def run_conversational_feature(
+    user_id: str,
+    payload: ChatPayload,
+    deps: RagDependencies = Depends(get_dependencies),
+):
+    session = deps.get_or_create_session(user_id)
+    citations: List[CitationModel] = []
+    context_snippets: List[Dict[str, Any]] = []
+    enriched_message = payload.message.strip()
+
+    if payload.use_rag:
+        tag_filter = _normalize_tag_list(payload.rag_tags)
+        results = deps.retriever.retrieve(
+            user_id,
+            payload.message,
+            top_k=payload.rag_top_k or deps.config.top_k,
+            tags=tuple(tag_filter) if tag_filter else None,
+            score_threshold=payload.rag_score_threshold,
+        )
+        prompt_context = build_context_block(
+            results,
+            max_chars=deps.config.max_context_chars,
+        )
+        context_snippets = prompt_context.used_chunks
+        ranked = deps.ranker.rank(
+            results, top_n=payload.rag_top_k or deps.config.top_k
+        )
+        citations = [
+            CitationModel(
+                source=entry.source_name,
+                chunk_id=entry.chunk_id,
+                chunk_index=entry.chunk_index,
+                score=entry.score,
+            )
+            for entry in ranked
+        ]
+        if prompt_context.text_block and prompt_context.text_block != "[no matching context retrieved]":
+            enriched_message = (
+                f"{payload.message.strip()}\n\n"
+                "Document evidence retrieved from the knowledge base:\n"
+                f"{prompt_context.text_block}\n\n"
+                "Combine this evidence with your broader analysis expertise."
+            )
+        session.set_state("last_rag_query", payload.message)
+        session.set_state("last_rag_context", context_snippets)
+        session.set_state(
+            "last_rag_citations",
+            [citation.dict() for citation in citations],
+        )
+
+    ctx = FeatureContext(session=session, llm=deps.generator.llm_client)
+    try:
+        feature = deps.feature_registry.create(payload.feature.value, ctx)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    session.memory.append("user", payload.message, feature=payload.feature.value)
+    if payload.metadata:
+        session.set_state("last_metadata", payload.metadata)
+    result = feature.run(enriched_message, context=ctx)
+    session.memory.append("assistant", result.summary, feature=payload.feature.value)
+
+    return CombinedChatResponseModel(
+        feature=payload.feature,
+        title=result.title,
+        summary=result.summary,
+        data=result.data,
+        session_state=dict(session.state),
+        citations=citations,
+        context_snippets=context_snippets,
+    )
+
+
 def _parse_tags(raw: Optional[str]) -> List[str]:
     if not raw:
         return []
     return [tag.strip().lower() for tag in raw.split(",") if tag.strip()]
+
+
+def _normalize_tag_list(raw: Optional[List[str]]) -> List[str]:
+    if not raw:
+        return []
+    return [tag.strip().lower() for tag in raw if isinstance(tag, str) and tag.strip()]
 
 
 __all__ = ["app"]

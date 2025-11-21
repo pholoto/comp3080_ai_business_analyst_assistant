@@ -170,6 +170,10 @@ class DocumentStore:
                 continue
             yield DocumentRecord(metadata=metadata, text=self._extract_text(path, metadata.mime_type))
 
+    def get_document_by_checksum(self, user_id: str, checksum: str) -> Optional[DocumentMetadata]:
+        """Return previously ingested document metadata that matches a checksum."""
+        return self._find_by_checksum(user_id, checksum)
+
     def _extract_text(self, path: Path, mime_type: str) -> str:
         """Extract raw text from a stored document."""
         suffix = path.suffix.lower()

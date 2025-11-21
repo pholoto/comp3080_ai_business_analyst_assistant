@@ -1,17 +1,23 @@
 # Backend RAG Service
 
-This folder hosts the Retrieval-Augmented Generation (RAG) backend for the AI Business Analyst Assistant. The service ingests user documents, indexes them with FAISS, and exposes FastAPI endpoints for two agents:
+This folder hosts the Retrieval-Augmented Generation (RAG) backend for the AI Business Analyst Assistant. The implementation now covers the complete reference pipeline: document ingestion → chunking → embeddings → FAISS index → retrieval & ranking → prompt templating → LLM answer generation → `rag_pipeline` orchestration → FastAPI endpoints and tests.
 
-- **Ideation Agent** – generates new solution ideas grounded in project briefs, reports, and meeting notes.
-- **Progress Agent** – analyses logs, timelines, and task updates to surface progress insights, deadline risks, and recovery suggestions.
+## Architecture overview
 
-## Capabilities
-- Per-user document segregation under `data/<user_id>` with metadata tracked in `doc_index.json`.
-- LangChain-based chunking (512 token chunks, 128 token overlap).
-- Sentence-transformers embeddings stored in FAISS indices (`vector_store/<user_id>`).
-- Retrieval layer with optional tag filters and ranked similarity scores.
-- LLM generation layer wired to `AI.llm.client` with graceful stub fallback.
-- REST API for document ingestion, ideation, and progress analysis.
+| Stage | Description | Key files |
+| --- | --- | --- |
+| Ingestion & metadata | Per-user storage, checksum dedupe, txt/pdf/docx/md parsing | `rag/document_store.py`, `back_end/app.py` (`POST /documents`), `rag/pipeline.py` (`ingest_document`)
+| Chunking | Recursive splitter with overlap, char ranges, provenance fields | `rag/text_splitter.py`
+| Embeddings | Provider abstraction (SentenceTransformers default, mockable) | `rag/embedding_generator.py`
+| Vector index | Persistent FAISS per user with metadata blob | `rag/vector_store.py`
+| Retrieval & ranking | Score thresholding, optional recency boost, tag filters, similarity ranking previews | `rag/retrieval.py`, `rag/ranking.py`
+| Prompting | Context budget enforcement, reusable templates, guardrails | `rag/prompts.py`
+| LLM generation | `ResponseGenerator` (wrapping `AI.llm.client`), citations in answer | `rag/generation.py`, `rag/pipeline.py`
+| RAG orchestration | `RagPipeline`, CLI demo, `/users/{id}/rag` endpoint | `rag/pipeline.py`, `back_end/app.py`
+| Agents | Ideation + Progress flows built on retriever/generator | `rag/agents/*.py`
+| Tests | Unit + integration coverage for chunking, embeddings, vector store, retriever, prompts, pipeline | `back_end/tests/`
+
+This mapping aligns with the provided architecture diagram: ingestion (DocumentStore) feeds chunking (TextSplitter), embeddings (EmbeddingGenerator) populate the vector store (FaissVectorStore), retrieval (ContextRetriever) fuels prompting (`rag/prompts.py`) and LLM generation, all orchestrated by `RagPipeline` and exposed through FastAPI/CLI.
 
 ## Requirements
 
@@ -23,9 +29,9 @@ python -m venv .venv
 pip install -r back_end/requirements.txt
 ```
 
-> The default embedding model is `sentence-transformers/all-MiniLM-L6-v2`. The LLM layer defaults to the Ollama client defined in `AI.llm.client`, but safely falls back to a stub when the model is unavailable.
+The default embedding model is `sentence-transformers/all-MiniLM-L6-v2` (set `RAG_EMBED_MODEL` to override). The LLM layer defers to `AI.llm.client` (MLVoca API with DeepSeek R1 by default) and falls back to a deterministic stub for local testing.
 
-## Running the API
+## Running the FastAPI service
 
 ```powershell
 uvicorn back_end.app:app --reload
@@ -34,53 +40,82 @@ uvicorn back_end.app:app --reload
 Key endpoints:
 
 | Method | Path | Description |
-| ------ | ---- | ----------- |
-| `GET`  | `/health` | Service heartbeat |
-| `GET`  | `/users/{user_id}/documents` | List stored documents for a user |
-| `POST` | `/users/{user_id}/documents` | Upload and index a document (`multipart/form-data` with `file` and optional `tags`) |
-| `POST` | `/users/{user_id}/ideation` | Generate 5-10 ideas for a topic |
-| `POST` | `/users/{user_id}/progress` | Summarise progress status as of a date |
+| --- | --- | --- |
+| `GET` | `/health` | Service heartbeat |
+| `GET` | `/users/{user_id}/documents` | List stored documents + metadata |
+| `POST` | `/users/{user_id}/documents` | Upload + index a document (`multipart/form-data`) |
+| `POST` | `/users/{user_id}/ideation` | Run the Ideation agent |
+| `POST` | `/users/{user_id}/progress` | Run the Progress agent |
+| `POST` | `/users/{user_id}/rag` | General-purpose RAG answer with citations (JSON output) |
 
-### Sample requests
+### Sample PowerShell calls
 
-**Upload a document**
+Upload + index:
 
 ```powershell
 Invoke-RestMethod -Method Post `
-	-Uri http://localhost:8000/users/user1/documents `
-	-Form @{ file = Get-Item .\docs\project_brief.pdf; tags = "ideation,brief" }
+	-Uri http://localhost:8000/users/demo/documents `
+	-Form @{ file = Get-Item .\docs\project_brief.pdf; tags = "brief,ideation" }
 ```
 
-**Run Ideation Agent**
+Ask a question via the unified pipeline:
 
 ```powershell
 Invoke-RestMethod -Method Post `
-	-Uri http://localhost:8000/users/user1/ideation `
-	-Body (@{ topic = "New fintech revenue streams" } | ConvertTo-Json) `
+	-Uri http://localhost:8000/users/demo/rag `
+	-Body (@{
+			question = "What risks were recorded last sprint?"
+			top_k = 6
+			score_threshold = 0.2
+		} | ConvertTo-Json) `
 	-ContentType "application/json"
 ```
 
-**Run Progress Agent**
+Response schema:
 
-```powershell
-Invoke-RestMethod -Method Post `
-	-Uri http://localhost:8000/users/user1/progress `
-	-Body (@{ reference_date = "2025-03-31" } | ConvertTo-Json) `
-	-ContentType "application/json"
+```json
+{
+	"answer": "...",
+	"citations": [
+		{"source": "status_report.docx", "chunk_id": "doc_0003", "chunk_index": 3, "score": 0.84}
+	],
+	"used_context": [...],
+	"prompt_template": "...full prompt...",
+	"timings_ms": {"retrieval": 43.1, "total": 312.8}
+}
 ```
 
-## Implementation Notes
+## Running the CLI demo / smoke test
 
-- Vector search uses cosine similarity via a `faiss.IndexFlatIP` index; embeddings are pre-normalised.
-- Tags help scope retrieval (e.g., `ideation`, `progress`, `timeline`). When omitted, each agent fallbacks to sensible defaults.
-- The generator enforces the rule “Only answer based on the documents.” If context is insufficient, it responds with `I could not find enough information in the documents to answer.`
-- Document duplication is prevented via SHA-256 checksums.
-- All directories are auto-created: `data/`, `vector_store/`, and metadata files.
+The pipeline exposes a CLI wrapper that can ingest a folder and answer a query in one shot (useful for demos or benchmarking latency).
 
-## Extending
+```powershell
+python -m back_end.rag.pipeline "List current scope risks" --user-id demo --ingest-folder AI/sample_documents --top-k 6
+```
 
-- Add new agent logic under `rag/agents/` and register it in `back_end/app.py`.
-- Swap the embedding model by updating `rag/config.py` (ensure compatible vector dimensions).
-- Connect to alternative LLM providers by injecting a custom client into `ResponseGenerator`.
+Output is a JSON blob matching the `/rag` endpoint, including citations and timings.
 
-The system is designed for composability—every stage (store, splitter, embeddings, vector DB, retriever, generator, ranker) is modular and easily replaceable.
+## Rebuilding / extending the pipeline
+
+- **Rebuild the vector index**: delete the per-user folder under `back_end/vector_store/<user_id>` and re-run ingestion, or call the CLI with `--ingest-folder` to rehydrate everything.
+- **Swap embedding providers**: implement `EmbeddingProvider` (see `rag/embedding_generator.py`) and pass it into `RagPipeline` or `EmbeddingGenerator`. Tests stub this interface, so new providers should add coverage.
+- **Add new retrieval heuristics**: extend `ContextRetriever` to adjust thresholds, or surface additional score controls via the `/rag` payload.
+- **New agents**: add a class under `rag/agents/`, inject the shared retriever/generator via `RagDependencies`, and expose the endpoint in `back_end/app.py`.
+
+## Tests & validation
+
+Run the unit + integration suite (covers chunking, embeddings, vector store, retrieval, prompts, and the full pipeline):
+
+```powershell
+python -m pytest back_end/tests -q
+```
+
+The pipeline integration test ingests synthetic data, executes `RagPipeline.run`, and asserts citations plus latency metrics—serving as the requested smoke test.
+
+## Developer tips
+
+- Adjust `max_context_chars`, `score_threshold`, or `recency_boost_*` directly in `rag/config.py` (or pass a custom `RagConfig`) to tune retrieval behaviour for different deployments.
+- Logs around ingestion, retrieval, and generation can be enabled by configuring the app’s logging level (FastAPI/uvicorn). Add additional context logging where needed.
+- When FAISS or sentence-transformers are unavailable (e.g., CI), the code raises explicit TODO-style errors so dependencies are clear.
+
+With these pieces the backend now delivers a complete, test-backed RAG pipeline that mirrors the architecture requirements and exposes a turnkey `/rag` endpoint for the AI Business Analyst Assistant.

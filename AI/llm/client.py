@@ -1,15 +1,16 @@
-"""LLM client abstraction with optional MLVoca support."""
+"""LLM client abstraction with a generic HTTP chat backend."""
 from __future__ import annotations
 
 import logging
 import os
+import random
+import time
 from dataclasses import dataclass
 from typing import Iterable, Mapping, Optional
 
 import requests
 
-DEFAULT_MLVOCA_BASE_URL = "https://mlvoca.com/api"
-DEFAULT_MLVOCA_MODEL = "deepseek-r1:1.5b"
+DEFAULT_CHAT_ENDPOINT = "https://apifreellm.com/api/chat"
 
 
 @dataclass
@@ -88,19 +89,29 @@ class FailoverLLMClient(LLMClient):
             )
 
 
-class MLVocaLLMClient(LLMClient):
-    """Client that talks to the public MLVoca text generation API."""
+class HTTPChatLLMClient(LLMClient):
+    """Generic HTTP chat client compatible with simple JSON APIs."""
 
     def __init__(
         self,
         *,
-        base_url: str | None = None,
-        model: str | None = None,
+        endpoint: str | None = None,
         request_timeout: int = 120,
+        headers: Optional[Mapping[str, str]] = None,
     ) -> None:
-        self.base_url = base_url or os.getenv("MLVOCA_BASE_URL", DEFAULT_MLVOCA_BASE_URL)
-        self.model = model or os.getenv("MLVOCA_MODEL", DEFAULT_MLVOCA_MODEL)
+        self.endpoint = endpoint or os.getenv("LLM_CHAT_URL", DEFAULT_CHAT_ENDPOINT)
         self.request_timeout = request_timeout
+        base_headers = {"Content-Type": "application/json"}
+        api_key = os.getenv("LLM_API_KEY")
+        if api_key:
+            base_headers["Authorization"] = f"Bearer {api_key}"
+        if headers:
+            for key, value in headers.items():
+                base_headers[str(key)] = str(value)
+        self.headers = base_headers
+        # Use a requests.Session for connection reuse and better performance.
+        self._session = requests.Session()
+        self._session.headers.update(self.headers)
 
     def _format_messages(self, messages: Iterable[LLMPrompt]) -> str:
         parts = []
@@ -117,55 +128,145 @@ class MLVocaLLMClient(LLMClient):
                 parts.append(f"{prefix}: {cleaned}")
         return "\n\n".join(parts)
 
+    def _apply_format_hint(
+        self,
+        prompt_text: str,
+        extra: Optional[Mapping[str, object]],
+    ) -> str:
+        if not extra:
+            return prompt_text
+        format_spec = extra.get("response_format")
+        if isinstance(format_spec, Mapping) and format_spec.get("type") == "json_object":
+            hint = (
+                "Please respond with a single valid JSON object only, without additional prose,"
+                " ensuring it is parseable."
+            )
+            return f"{prompt_text}\n\n{hint}"
+        return prompt_text
+
+    def _build_headers(self, extra: Optional[Mapping[str, object]]) -> dict[str, str]:
+        headers = dict(self.headers)
+        if extra and "headers" in extra and isinstance(extra["headers"], Mapping):
+            for key, value in extra["headers"].items():
+                headers[str(key)] = str(value)
+        return headers
+
+    def _build_payload(
+        self,
+        message: str,
+        extra: Optional[Mapping[str, object]],
+    ) -> dict[str, object]:
+        payload: dict[str, object] = {"message": message}
+        # Temperature is only forwarded when explicitly overridden to avoid
+        # relying on provider-specific parameters.
+        if extra and "temperature" in extra:
+            payload["temperature"] = extra["temperature"]
+        if extra and "payload" in extra and isinstance(extra["payload"], Mapping):
+            payload.update(extra["payload"])
+        return payload
+
     def generate(
         self,
         messages: Iterable[LLMPrompt],
         *,
         temperature: float = 0.2,
-        max_tokens: int = 800,  # Unused but kept for signature compatibility.
+        max_tokens: int = 800,
         extra: Optional[Mapping[str, object]] = None,
     ) -> str:
         prompt_text = self._format_messages(messages)
         if not prompt_text:
-            prompt_text = "Assistant:"
+            prompt_text = "User:"
+        prompt_text = self._apply_format_hint(prompt_text, extra)
+        payload = self._build_payload(prompt_text, extra)
+        headers = self._build_headers(extra)
 
-        payload: dict[str, object] = {
-            "model": self.model,
-            "prompt": prompt_text,
-            "stream": False,
-        }
+        # Retry/backoff loop for transient provider errors or rate limits.
+        max_attempts = 4
+        if extra and isinstance(extra, Mapping) and "retries" in extra:
+            try:
+                max_attempts = int(extra.get("retries"))
+            except Exception:
+                pass
 
-        options: dict[str, object] = {"temperature": temperature}
-        if extra:
-            if "options" in extra and isinstance(extra["options"], Mapping):
-                options.update(extra["options"])  # type: ignore[arg-type]
-            if "model" in extra:
-                payload["model"] = str(extra["model"])
-            if "response_format" in extra and isinstance(extra["response_format"], Mapping):
-                fmt = extra["response_format"].get("type")
-                if fmt == "json_object":
-                    payload["format"] = "json"
-            for key in ("suffix", "format", "system", "template", "raw", "stream"):
-                if key in extra:
-                    payload[key] = extra[key]
-        if options:
-            payload["options"] = options
+        backoff_base = 2.0
+        last_exc: Exception | None = None
+        for attempt in range(1, max_attempts + 1):
+            try:
+                resp = self._session.post(
+                    self.endpoint,
+                    headers=headers,
+                    json=payload,
+                    timeout=self.request_timeout,
+                )
+            except requests.RequestException as exc:
+                last_exc = exc
+                wait = backoff_base * (2 ** (attempt - 1)) + random.random()
+                logging.getLogger(__name__).warning(
+                    "Request failure (attempt %d/%d): %s; retrying in %.1fs",
+                    attempt,
+                    max_attempts,
+                    exc,
+                    wait,
+                )
+                time.sleep(wait)
+                continue
 
-        response = requests.post(
-            f"{self.base_url}/generate",
-            json=payload,
-            timeout=self.request_timeout,
-        )
-        response.raise_for_status()
-        data = response.json()
-        return str(data.get("response", ""))
+            # If provider signals rate limit, honour Retry-After when provided.
+            if resp.status_code == 429:
+                retry_after = resp.headers.get("Retry-After")
+                try:
+                    wait = float(retry_after) if retry_after is not None else backoff_base * (2 ** (attempt - 1))
+                except Exception:
+                    wait = backoff_base * (2 ** (attempt - 1))
+                logging.getLogger(__name__).warning(
+                    "Provider returned 429 (attempt %d/%d); retrying in %.1fs",
+                    attempt,
+                    max_attempts,
+                    wait,
+                )
+                time.sleep(wait + random.random())
+                last_exc = RuntimeError("rate limited")
+                continue
+
+            if resp.status_code >= 500:
+                # Server error; backoff and retry.
+                wait = backoff_base * (2 ** (attempt - 1)) + random.random()
+                logging.getLogger(__name__).warning(
+                    "Provider server error %d (attempt %d/%d); retrying in %.1fs",
+                    resp.status_code,
+                    attempt,
+                    max_attempts,
+                    wait,
+                )
+                time.sleep(wait)
+                last_exc = RuntimeError(f"server error {resp.status_code}")
+                continue
+
+            try:
+                resp.raise_for_status()
+            except requests.HTTPError as exc:
+                last_exc = exc
+                # Non-retryable client error; raise immediately.
+                raise
+
+            data = resp.json()
+            if data.get("status") == "success" and "response" in data:
+                return str(data.get("response", ""))
+            if "response" in data and not data.get("error"):
+                return str(data["response"])
+            error_message = data.get("error") or data
+
+        # If we reach here, all retries failed.
+        if last_exc:
+            raise RuntimeError(f"LLM provider error after retries: {last_exc}")
+        raise RuntimeError(f"LLM provider error: {error_message}")
 
 
 def get_default_client() -> LLMClient:
     """Return the default LLM client, falling back to the stub client."""
     fallback = StubLLMClient()
     try:
-        primary = MLVocaLLMClient()
+        primary = HTTPChatLLMClient()
     except Exception:
         return fallback
     return FailoverLLMClient(primary, fallback)

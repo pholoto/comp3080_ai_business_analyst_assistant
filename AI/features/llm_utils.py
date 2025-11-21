@@ -31,12 +31,13 @@ def request_json_response(
         extra={"response_format": {"type": "json_object"}},
     )
     if not raw:
-        return {"title": default_title, "summary": ""}
+        return {"title": default_title, "summary": "", "raw_model_output": ""}
     cleaned = _sanitize_model_output(raw)
     data = _load_json_loose(cleaned)
     if data is None:
         # Fallback to whatever the model returned after removing thinking traces
-        return {"title": default_title, "summary": cleaned}
+        # Include the raw provider output so callers can inspect unstructured content
+        return {"title": default_title, "summary": cleaned, "raw_model_output": raw}
     if "title" not in data:
         data["title"] = default_title
     return data

@@ -4,8 +4,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict
 
-from ..prompts import (REQUIREMENT_CLARIFIER_SYSTEM_PROMPT,
-                       build_requirement_clarifier_user_prompt)
+from common.prompts import (REQUIREMENT_CLARIFIER_SYSTEM_PROMPT,
+                            build_requirement_clarifier_user_prompt)
+
 from .base import FeatureContext, FeatureResult
 from .llm_utils import build_attachment_context, request_json_response
 
