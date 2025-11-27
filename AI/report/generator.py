@@ -52,75 +52,131 @@ class BAReportGenerator:
         overview = session.get_state("project_overview") or "Project overview not captured yet."
         add_paragraph(overview)
 
-        add_heading("Requirement Backlog", level=1)
+        add_heading("Problem Definition", level=1)
+        problem_statement = session.get_state("problem_statement") or "Problem statement not captured."
+        add_paragraph(problem_statement)
+        self._write_simple_list(document, session.get_state("pain_points"), "Pain Points")
+        self._write_simple_list(document, session.get_state("success_metrics"), "Success Metrics")
+        self._write_simple_list(document, session.get_state("clarifying_questions"), "Clarifying Questions")
+        self._write_simple_list(document, session.get_state("assumptions"), "Assumptions")
+
+        add_heading("Requirements Analysis", level=1)
         requirements = session.get_state("requirements") or []
         if requirements:
+            add_paragraph("Functional Requirements:")
             for item in requirements:
                 requirement = item if isinstance(item, Mapping) else {"requirement": str(item)}
+                req_id = requirement.get("id")
                 req_text = requirement.get("requirement") or requirement.get("name") or str(item)
-                rationale = requirement.get("rationale", "")
-                para = add_paragraph(f"• {req_text}")
+                priority = requirement.get("priority")
+                rationale = requirement.get("rationale")
+                label = f"• {req_id}: {req_text}" if req_id else f"• {req_text}"
+                if priority:
+                    label += f" (Priority: {priority})"
+                add_paragraph(label)
                 if rationale:
                     add_paragraph(f"  Rationale: {rationale}")
         else:
-            add_paragraph("No requirements have been documented.")
+            add_paragraph("Functional requirements have not been documented.")
+        non_functional = session.get_state("non_functional_requirements") or []
+        if non_functional:
+            add_paragraph("Non-functional Requirements:")
+            for item in non_functional:
+                requirement = item if isinstance(item, Mapping) else {"requirement": str(item)}
+                attribute = requirement.get("attribute", "Attribute")
+                req_text = requirement.get("requirement") or str(item)
+                rationale = requirement.get("rationale")
+                add_paragraph(f"• {attribute}: {req_text}")
+                if rationale:
+                    add_paragraph(f"  Rationale: {rationale}")
+        self._write_simple_list(document, session.get_state("dependencies"), "Dependencies")
+        self._write_simple_list(document, session.get_state("risks"), "Risks")
 
-        add_heading("User Stories", level=1)
-        user_stories = session.get_state("user_stories") or []
-        if user_stories:
-            for story in user_stories:
-                story = story if isinstance(story, Mapping) else {}
-                identifier = story.get("id", "Story")
-                role = story.get("role", "[role]")
-                goal = story.get("goal", "[goal]")
-                benefit = story.get("benefit", "[benefit]")
-                add_paragraph(f"{identifier}: As a {role}, I want {goal} so that {benefit}.")
-        else:
-            add_paragraph("No user stories captured yet.")
+        add_heading("Solution Design", level=1)
+        blueprint = session.get_state("solution_blueprint") or "Solution blueprint not documented."
+        add_paragraph(blueprint)
+        components = session.get_state("architecture_components") or []
+        if components:
+            add_paragraph("Component Breakdown:")
+            for component in components:
+                component = component if isinstance(component, Mapping) else {}
+                name = component.get("name", "Component")
+                responsibility = component.get("responsibility", "")
+                tech_stack = component.get("tech_stack", "")
+                integrations = component.get("integrations", "")
+                add_paragraph(f"• {name} — {responsibility}")
+                if tech_stack:
+                    add_paragraph(f"  Tech: {tech_stack}")
+                if integrations:
+                    add_paragraph(f"  Integrations: {integrations}")
+        self._write_simple_list(document, session.get_state("design_patterns"), "Design Patterns")
+        technology_choices = session.get_state("technology_choices") or []
+        if technology_choices:
+            add_paragraph("Technology Choices:")
+            for choice in technology_choices:
+                choice = choice if isinstance(choice, Mapping) else {}
+                area = choice.get("area", "Area")
+                option = choice.get("option", "Option")
+                rationale = choice.get("rationale", "")
+                add_paragraph(f"• {area}: {option}")
+                if rationale:
+                    add_paragraph(f"  Rationale: {rationale}")
+        self._write_simple_list(document, session.get_state("diagram_ideas"), "Diagram Ideas")
 
-        add_heading("Use Case Flows", level=1)
-        flows = session.get_state("use_case_flows") or []
-        if flows:
-            for flow in flows:
-                flow = flow if isinstance(flow, Mapping) else {}
-                name = flow.get("name", "Use Case")
-                primary = flow.get("primary_path", [])
-                alternates = flow.get("alternate_paths", [])
-                add_paragraph(f"Use Case: {name}")
-                self._add_numbered_list(document, primary, prefix="Primary")
-                if alternates:
-                    self._add_numbered_list(document, alternates, prefix="Alternate")
-        else:
-            add_paragraph("Use case flows not yet defined.")
+        add_heading("Prototype Development", level=1)
+        self._write_simple_list(document, session.get_state("mvp_scope"), "MVP Scope")
+        plan = session.get_state("prototype_plan") or []
+        if plan:
+            add_paragraph("Implementation Steps:")
+            self._add_numbered_list(document, plan, prefix="Step")
+        code_suggestions = session.get_state("prototype_code_suggestions") or []
+        if code_suggestions:
+            add_paragraph("Code Suggestions:")
+            for suggestion in code_suggestions:
+                suggestion = suggestion if isinstance(suggestion, Mapping) else {}
+                desc = suggestion.get("description", "Suggestion")
+                snippet = suggestion.get("snippet", "")
+                add_paragraph(f"• {desc}")
+                if snippet:
+                    add_paragraph(snippet)
+        self._write_simple_list(document, session.get_state("tooling_recommendations"), "Tooling Recommendations")
+        self._write_simple_list(document, session.get_state("prototype_risks"), "Prototype Risks")
+        self._write_simple_list(document, session.get_state("prototype_success_metrics"), "Prototype Success Metrics")
 
-        add_heading("Acceptance Criteria", level=1)
-        criteria = session.get_state("acceptance_criteria") or []
-        if criteria:
-            for item in criteria:
-                add_paragraph(f"• {item}")
-        else:
-            add_paragraph("Acceptance criteria pending.")
+        add_heading("Testing & Validation", level=1)
+        test_matrix = session.get_state("test_matrix") or []
+        if test_matrix:
+            add_paragraph("Test Matrix:")
+            for entry in test_matrix:
+                entry = entry if isinstance(entry, Mapping) else {}
+                area = entry.get("area", "Area")
+                objective = entry.get("objective", "Objective")
+                test_cases = entry.get("test_cases", [])
+                owner = entry.get("owner", "Owner")
+                add_paragraph(f"• {area} — {objective} (Owner: {owner})")
+                if test_cases:
+                    self._add_numbered_list(document, test_cases, prefix="Test")
+        self._write_simple_list(document, session.get_state("validation_plan"), "Validation Plan")
+        self._write_simple_list(document, session.get_state("quality_gates"), "Quality Gates")
+        self._write_simple_list(document, session.get_state("qa_tooling"), "QA Tooling")
+        self._write_simple_list(document, session.get_state("qa_risks"), "QA Risks")
 
-        add_heading("Feature Prioritisation", level=1)
-        prioritised = session.get_state("prioritised_features") or {}
-        if prioritised:
-            for bucket in ("must", "should", "could", "wont"):
-                features = prioritised.get(bucket) or []
-                add_paragraph(bucket.upper())
-                if features:
-                    for feature in features:
-                        feature = feature if isinstance(feature, Mapping) else {}
-                        name = feature.get("name", "Unnamed feature")
-                        rationale = feature.get("rationale", "")
-                        add_paragraph(f"• {name}")
-                        if rationale:
-                            add_paragraph(f"  Rationale: {rationale}")
-                else:
-                    add_paragraph("  No items in this bucket yet.")
-        else:
-            add_paragraph("Feature priorities have not been established.")
+        add_heading("Documentation Summary", level=1)
+        outline = session.get_state("documentation_outline") or []
+        if outline:
+            for section in outline:
+                section = section if isinstance(section, Mapping) else {}
+                name = section.get("section", "Section")
+                intent = section.get("intent", "")
+                content_summary = section.get("content_summary", section.get("summary", ""))
+                add_paragraph(f"• {name} — {intent}")
+                if content_summary:
+                    add_paragraph(f"  Summary: {content_summary}")
+        self._write_simple_list(document, session.get_state("decision_log"), "Decision Log")
+        self._write_simple_list(document, session.get_state("documentation_actions"), "Action Items")
+        self._write_simple_list(document, session.get_state("publishing_assets"), "Publishing Assets")
 
-        add_heading("Market Fit Analysis", level=1)
+        add_heading("Market Analysis", level=1)
         uvp = session.get_state("uvp")
         competitive = session.get_state("competitive_landscape") or []
         if uvp:
@@ -137,37 +193,17 @@ class BAReportGenerator:
                     add_paragraph(f"  Strengths: {strengths}")
                 if gaps:
                     add_paragraph(f"  Gaps: {gaps}")
-        else:
-            add_paragraph("Competitive landscape assessment pending.")
-
-        add_heading("Stakeholder Matrix", level=1)
-        stakeholder_map = session.get_state("stakeholder_map") or []
-        if stakeholder_map:
-            for stakeholder in stakeholder_map:
-                stakeholder = stakeholder if isinstance(stakeholder, Mapping) else {}
-                name = stakeholder.get("stakeholder", "Stakeholder")
-                influence = stakeholder.get("influence", "")
-                interest = stakeholder.get("interest", "")
-                needs = stakeholder.get("needs", "")
-                success = stakeholder.get("success_metrics", "")
-                para = add_paragraph(f"• {name} (Influence: {influence}, Interest: {interest})")
-                if needs:
-                    add_paragraph(f"  Needs: {needs}")
-                if success:
-                    add_paragraph(f"  Success Metrics: {success}")
-        else:
-            add_paragraph("Stakeholder analysis is not yet available.")
-
-        add_heading("Engagement Plan", level=1)
-        engagement_plan = session.get_state("engagement_plan") or []
-        if engagement_plan:
-            if isinstance(engagement_plan, list):
-                for line in engagement_plan:
-                    add_paragraph(f"• {line}")
-            else:
-                add_paragraph(str(engagement_plan))
-        else:
-            add_paragraph("Engagement plan to be defined.")
+        target_segments = session.get_state("target_segments") or []
+        if target_segments:
+            add_paragraph("Target Segments:")
+            for segment in target_segments:
+                segment = segment if isinstance(segment, Mapping) else {}
+                name = segment.get("segment", "Segment")
+                needs = segment.get("needs", "")
+                fit_score = segment.get("fit_score")
+                add_paragraph(f"• {name} — Needs: {needs} (Fit: {fit_score})")
+        self._write_simple_list(document, session.get_state("go_to_market_ideas"), "Go-to-Market Ideas")
+        self._write_simple_list(document, session.get_state("impact_considerations"), "Impact Considerations")
 
         add_heading("Attached Documents", level=1)
         attachments = session.list_attachments()
@@ -199,3 +235,14 @@ class BAReportGenerator:
     ) -> None:
         for idx, item in enumerate(items, start=1):
             document.add_paragraph(f"{prefix} {idx}: {item}")
+
+    def _write_simple_list(self, document, items, heading: str) -> None:
+        if not items:
+            return
+        add_paragraph = document.add_paragraph
+        add_paragraph(f"{heading}:")
+        if isinstance(items, (list, tuple, set)):
+            for entry in items:
+                add_paragraph(f"• {entry}")
+        else:
+            add_paragraph(f"• {items}")

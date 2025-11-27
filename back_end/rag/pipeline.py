@@ -12,10 +12,11 @@ from common.prompts import (DEFAULT_GUARDRAILS, DEFAULT_SYSTEM_PROMPT,
                             DEFAULT_TASK_PROMPT)
 
 from .config import DEFAULT_CONFIG, RagConfig
+from .context_blocks import (PromptContext, build_context_block,
+                             build_user_message)
 from .document_store import DocumentRecord, DocumentStore
 from .embedding_generator import EmbeddingGenerator
 from .generation import ResponseGenerator
-from .prompts import PromptContext, build_context_block, build_user_message
 from .ranking import SimilarityRanker
 from .retrieval import ContextRetriever
 from .text_splitter import TextSplitter

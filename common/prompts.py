@@ -32,201 +32,320 @@ DEFAULT_GUARDRAILS = dedent(
 ).strip()
 
 # ----------------------------------------------------------------------------
-# Requirement Clarifier
+# Problem Definition
 # ----------------------------------------------------------------------------
 
-REQUIREMENT_CLARIFIER_SYSTEM_PROMPT = dedent(
+PROBLEM_DEFINITION_SYSTEM_PROMPT = dedent(
     """
-    You are an AI Business Analyst helping student teams refine their project idea. Generate a JSON
-    object with keys: title, summary, clarifying_questions (list of strings), assumptions (list of
-    strings), and requirement_backlog (list of objects with fields id, requirement, rationale). Use
-    the project context provided.
+    You are an AI project strategist. Produce a JSON object with keys: title, summary,
+    refined_problem_statement (string), pain_points (list of strings), success_metrics (list of
+    strings), clarifying_questions (list of strings), and assumptions (list of strings). Reflect the
+    supplied context faithfully and flag missing information.
     """
 ).strip()
 
-REQUIREMENT_CLARIFIER_USER_PROMPT = dedent(
+PROBLEM_DEFINITION_USER_PROMPT = dedent(
     """
-    Current project context and notes:
+    Current project overview:
     {project_overview}
 
-    Supporting documents summary:
-    {attachments}
-
-    New user input: {user_input}
-
-    If previous decisions exist, ensure you respect them.
-    """
-).strip()
-
-
-def build_requirement_clarifier_user_prompt(
-    *,
-    project_overview: str,
-    attachments: str,
-    user_input: str,
-) -> str:
-    return REQUIREMENT_CLARIFIER_USER_PROMPT.format(
-        project_overview=project_overview,
-        attachments=attachments,
-        user_input=user_input,
-    )
-
-
-# ----------------------------------------------------------------------------
-# Feature Prioritisation
-# ----------------------------------------------------------------------------
-
-FEATURE_PRIORITISATION_SYSTEM_PROMPT = dedent(
-    """
-    Act as an AI Business Analyst performing MoSCoW prioritisation. Return a JSON object with keys:
-    title, summary, prioritised_features (object with keys must, should, could, wont; each value is
-    list of objects with fields name, rationale, dependencies), and release_plan (list of strings).
-    Follow existing constraints from the conversation.
-    """
-).strip()
-
-FEATURE_PRIORITISATION_USER_PROMPT = dedent(
-    """
-    Consolidated artefacts:
-    - Requirements: {requirements}
-    - User stories: {user_stories}
+    Documented constraints or commitments:
+    {constraints}
 
     Referenced attachments:
     {attachments}
 
-    New considerations: {user_input}
+    New stakeholder input:
+    {user_input}
     """
 ).strip()
 
 
-def build_feature_prioritisation_user_prompt(
+def build_problem_definition_user_prompt(
     *,
-    requirements: str | list,
-    user_stories: str | list,
+    project_overview: str,
+    constraints: str,
     attachments: str,
     user_input: str,
 ) -> str:
-    return FEATURE_PRIORITISATION_USER_PROMPT.format(
-        requirements=requirements,
-        user_stories=user_stories,
+    return PROBLEM_DEFINITION_USER_PROMPT.format(
+        project_overview=project_overview,
+        constraints=constraints,
         attachments=attachments,
         user_input=user_input,
     )
 
 
 # ----------------------------------------------------------------------------
-# Market Fit Analysis
+# Requirements Analysis
 # ----------------------------------------------------------------------------
 
-MARKET_FIT_SYSTEM_PROMPT = dedent(
+REQUIREMENTS_ANALYSIS_SYSTEM_PROMPT = dedent(
     """
-    You are an AI strategist. Produce a JSON object with keys: title, summary,
+    Act as an AI Business Analyst consolidating requirements. Return a JSON object with keys: title,
+    summary, functional_requirements (list of objects with id, requirement, rationale, priority),
+    non_functional_requirements (list of objects with attribute, requirement, rationale),
+    dependencies (list of strings), risks (list of strings), and open_questions (list of strings).
+    Ensure the backlog remains actionable and non-duplicated.
+    """
+).strip()
+
+REQUIREMENTS_ANALYSIS_USER_PROMPT = dedent(
+    """
+    Latest problem statement:
+    {problem_statement}
+
+    Existing requirement backlog:
+    {existing_requirements}
+
+    Referenced attachments:
+    {attachments}
+
+    Analyst request:
+    {user_input}
+    """
+).strip()
+
+
+def build_requirements_analysis_user_prompt(
+    *,
+    problem_statement: str,
+    existing_requirements: str | list,
+    attachments: str,
+    user_input: str,
+) -> str:
+    return REQUIREMENTS_ANALYSIS_USER_PROMPT.format(
+        problem_statement=problem_statement,
+        existing_requirements=existing_requirements,
+        attachments=attachments,
+        user_input=user_input,
+    )
+
+
+# ----------------------------------------------------------------------------
+# Solution Design
+# ----------------------------------------------------------------------------
+
+SOLUTION_DESIGN_SYSTEM_PROMPT = dedent(
+    """
+    Operate as an AI solution architect. Return a JSON object with keys: title, summary,
+    architecture_overview (string), component_breakdown (list of objects with name, responsibility,
+    tech_stack, integrations), design_patterns (list of strings), technology_choices (list of objects
+    with area, option, rationale), diagrams (list of strings describing diagram ideas), and
+    open_questions (list of strings). Use engineering best practices.
+    """
+).strip()
+
+SOLUTION_DESIGN_USER_PROMPT = dedent(
+    """
+    Confirmed requirements:
+    {requirements_digest}
+
+    Known constraints (regulatory, technical, budget):
+    {constraints}
+
+    Supporting attachments:
+    {attachments}
+
+    Architect prompt:
+    {user_input}
+    """
+).strip()
+
+
+def build_solution_design_user_prompt(
+    *,
+    requirements_digest: str | list,
+    constraints: str,
+    attachments: str,
+    user_input: str,
+) -> str:
+    return SOLUTION_DESIGN_USER_PROMPT.format(
+        requirements_digest=requirements_digest,
+        constraints=constraints,
+        attachments=attachments,
+        user_input=user_input,
+    )
+
+
+# ----------------------------------------------------------------------------
+# Prototype Development
+# ----------------------------------------------------------------------------
+
+PROTOTYPE_DEVELOPMENT_SYSTEM_PROMPT = dedent(
+    """
+    You are an AI delivery coach guiding MVP construction. Return a JSON object with keys: title,
+    summary, mvp_scope (list of strings), implementation_steps (list of strings ordered logically),
+    code_suggestions (list of objects with description and snippet), tooling_recommendations (list of
+    strings), risks (list of strings), and success_metrics (list of strings). Reference existing
+    solution designs and team context.
+    """
+).strip()
+
+PROTOTYPE_DEVELOPMENT_USER_PROMPT = dedent(
+    """
+    Solution blueprint summary:
+    {solution_blueprint}
+
+    Team capabilities / resources:
+    {team_capabilities}
+
+    Reference attachments:
+    {attachments}
+
+    Builder guidance request:
+    {user_input}
+    """
+).strip()
+
+
+def build_prototype_development_user_prompt(
+    *,
+    solution_blueprint: str | dict,
+    team_capabilities: str,
+    attachments: str,
+    user_input: str,
+) -> str:
+    return PROTOTYPE_DEVELOPMENT_USER_PROMPT.format(
+        solution_blueprint=solution_blueprint,
+        team_capabilities=team_capabilities,
+        attachments=attachments,
+        user_input=user_input,
+    )
+
+
+# ----------------------------------------------------------------------------
+# Testing & Validation
+# ----------------------------------------------------------------------------
+
+TESTING_VALIDATION_SYSTEM_PROMPT = dedent(
+    """
+    Serve as an AI QA lead. Return a JSON object with keys: title, summary, test_matrix (list of
+    objects with area, objective, test_cases, owner), validation_plan (list of strings describing
+    pilot or acceptance phases), quality_gates (list of strings), tooling (list of strings), and
+    risks (list of strings). Align to the requirements and prototype scope.
+    """
+).strip()
+
+TESTING_VALIDATION_USER_PROMPT = dedent(
+    """
+    Key requirements to verify:
+    {requirements_digest}
+
+    Prototype summary or constraints:
+    {prototype_summary}
+
+    Attachments referenced:
+    {attachments}
+
+    QA request:
+    {user_input}
+    """
+).strip()
+
+
+def build_testing_validation_user_prompt(
+    *,
+    requirements_digest: str | list,
+    prototype_summary: str,
+    attachments: str,
+    user_input: str,
+) -> str:
+    return TESTING_VALIDATION_USER_PROMPT.format(
+        requirements_digest=requirements_digest,
+        prototype_summary=prototype_summary,
+        attachments=attachments,
+        user_input=user_input,
+    )
+
+
+# ----------------------------------------------------------------------------
+# Documentation
+# ----------------------------------------------------------------------------
+
+DOCUMENTATION_SYSTEM_PROMPT = dedent(
+    """
+    You are an AI technical writer. Return a JSON object with keys: title, summary,
+    document_outline (list of objects with section, intent, content_summary), decision_log (list of
+    objects with decision, rationale, impact), action_items (list of strings), and publishing_assets
+    (list of strings describing deliverables such as DOCX, slides, or wiki updates). Use prior
+    project decisions and note any gaps explicitly.
+    """
+).strip()
+
+DOCUMENTATION_USER_PROMPT = dedent(
+    """
+    Project overview:
+    {project_overview}
+
+    Recent decisions or highlights:
+    {decision_log}
+
+    Attachments:
+    {attachments}
+
+    Documentation focus:
+    {user_input}
+    """
+).strip()
+
+
+def build_documentation_user_prompt(
+    *,
+    project_overview: str,
+    decision_log: str | list,
+    attachments: str,
+    user_input: str,
+) -> str:
+    return DOCUMENTATION_USER_PROMPT.format(
+        project_overview=project_overview,
+        decision_log=decision_log,
+        attachments=attachments,
+        user_input=user_input,
+    )
+
+
+# ----------------------------------------------------------------------------
+# Market Analysis
+# ----------------------------------------------------------------------------
+
+MARKET_ANALYSIS_SYSTEM_PROMPT = dedent(
+    """
+    You are an AI strategist assessing market fit. Produce a JSON object with keys: title, summary,
     competitive_landscape (list of objects with name, positioning, strengths, gaps),
     unique_value_proposition (string), target_segments (list of objects with segment, needs,
-    fit_score), and go_to_market_ideas (list of strings). Reference prior artefacts to maintain
-    alignment.
+    fit_score), go_to_market_ideas (list of strings), and impact_considerations (list of strings).
+    Keep recommendations grounded in provided context.
     """
 ).strip()
 
-MARKET_FIT_USER_PROMPT = dedent(
+MARKET_ANALYSIS_USER_PROMPT = dedent(
     """
-    Project overview: {project_overview}
-    Prioritised features: {prioritised_features}
-    Supporting attachments:
+    Project overview:
+    {project_overview}
+
+    Differentiators / strategic themes:
+    {differentiators}
+
+    Attachments referenced:
     {attachments}
-    Additional research prompt: {user_input}
+
+    Market research request:
+    {user_input}
     """
 ).strip()
 
 
-def build_market_fit_user_prompt(
+def build_market_analysis_user_prompt(
     *,
     project_overview: str,
-    prioritised_features: str | dict,
+    differentiators: str,
     attachments: str,
     user_input: str,
 ) -> str:
-    return MARKET_FIT_USER_PROMPT.format(
+    return MARKET_ANALYSIS_USER_PROMPT.format(
         project_overview=project_overview,
-        prioritised_features=prioritised_features,
-        attachments=attachments,
-        user_input=user_input,
-    )
-
-
-# ----------------------------------------------------------------------------
-# Stakeholder Insights
-# ----------------------------------------------------------------------------
-
-STAKEHOLDER_INSIGHTS_SYSTEM_PROMPT = dedent(
-    """
-    Operate as an AI Business Analyst building a stakeholder map. Produce JSON with keys: title,
-    summary, stakeholder_map (list of objects with stakeholder, influence, interest, needs,
-    success_metrics), engagement_plan (list of strings), and communication_cadence (list of objects
-    with stakeholder, channel, frequency, owner).
-    """
-).strip()
-
-STAKEHOLDER_INSIGHTS_USER_PROMPT = dedent(
-    """
-    Project summary: {project_overview}
-    Existing stakeholders: {stakeholder_map}
-    Supporting attachments:
-    {attachments}
-    User prompt: {user_input}
-    """
-).strip()
-
-
-def build_stakeholder_insights_user_prompt(
-    *,
-    project_overview: str,
-    stakeholder_map: str | list,
-    attachments: str,
-    user_input: str,
-) -> str:
-    return STAKEHOLDER_INSIGHTS_USER_PROMPT.format(
-        project_overview=project_overview,
-        stakeholder_map=stakeholder_map,
-        attachments=attachments,
-        user_input=user_input,
-    )
-
-
-# ----------------------------------------------------------------------------
-# Use Case Generator
-# ----------------------------------------------------------------------------
-
-USE_CASE_SYSTEM_PROMPT = dedent(
-    """
-    You are an AI Business Analyst. Produce a JSON object with keys: title, summary, user_stories
-    (list of objects with fields id, role, goal, benefit), use_case_flows (list of objects with name,
-    primary_path, alternate_paths), and acceptance_criteria (list of strings). Base your answer on
-    the requirements and conversation.
-    """
-).strip()
-
-USE_CASE_USER_PROMPT = dedent(
-    """
-    Known requirements backlog:
-    {requirements}
-
-    Dataset from attachments:
-    {attachments}
-
-    Additional guidance: {user_input}
-    """
-).strip()
-
-
-def build_use_case_user_prompt(
-    *,
-    requirements: str | list,
-    attachments: str,
-    user_input: str,
-) -> str:
-    return USE_CASE_USER_PROMPT.format(
-        requirements=requirements,
+        differentiators=differentiators,
         attachments=attachments,
         user_input=user_input,
     )
@@ -236,19 +355,25 @@ __all__ = [
     "DEFAULT_SYSTEM_PROMPT",
     "DEFAULT_TASK_PROMPT",
     "DEFAULT_GUARDRAILS",
-    "REQUIREMENT_CLARIFIER_SYSTEM_PROMPT",
-    "REQUIREMENT_CLARIFIER_USER_PROMPT",
-    "FEATURE_PRIORITISATION_SYSTEM_PROMPT",
-    "FEATURE_PRIORITISATION_USER_PROMPT",
-    "MARKET_FIT_SYSTEM_PROMPT",
-    "MARKET_FIT_USER_PROMPT",
-    "STAKEHOLDER_INSIGHTS_SYSTEM_PROMPT",
-    "STAKEHOLDER_INSIGHTS_USER_PROMPT",
-    "USE_CASE_SYSTEM_PROMPT",
-    "USE_CASE_USER_PROMPT",
-    "build_requirement_clarifier_user_prompt",
-    "build_feature_prioritisation_user_prompt",
-    "build_market_fit_user_prompt",
-    "build_stakeholder_insights_user_prompt",
-    "build_use_case_user_prompt",
+    "PROBLEM_DEFINITION_SYSTEM_PROMPT",
+    "PROBLEM_DEFINITION_USER_PROMPT",
+    "REQUIREMENTS_ANALYSIS_SYSTEM_PROMPT",
+    "REQUIREMENTS_ANALYSIS_USER_PROMPT",
+    "SOLUTION_DESIGN_SYSTEM_PROMPT",
+    "SOLUTION_DESIGN_USER_PROMPT",
+    "PROTOTYPE_DEVELOPMENT_SYSTEM_PROMPT",
+    "PROTOTYPE_DEVELOPMENT_USER_PROMPT",
+    "TESTING_VALIDATION_SYSTEM_PROMPT",
+    "TESTING_VALIDATION_USER_PROMPT",
+    "DOCUMENTATION_SYSTEM_PROMPT",
+    "DOCUMENTATION_USER_PROMPT",
+    "MARKET_ANALYSIS_SYSTEM_PROMPT",
+    "MARKET_ANALYSIS_USER_PROMPT",
+    "build_problem_definition_user_prompt",
+    "build_requirements_analysis_user_prompt",
+    "build_solution_design_user_prompt",
+    "build_prototype_development_user_prompt",
+    "build_testing_validation_user_prompt",
+    "build_documentation_user_prompt",
+    "build_market_analysis_user_prompt",
 ]

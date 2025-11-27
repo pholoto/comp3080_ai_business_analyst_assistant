@@ -1,7 +1,6 @@
-"""Chunking utilities built on top of LangChain's text splitter."""
+"""Fixed-size chunking utilities for document ingestion."""
 from __future__ import annotations
 
-import importlib
 from dataclasses import asdict, dataclass
 from typing import Iterable, List, Sequence
 
@@ -38,27 +37,14 @@ class DocumentChunk:
 
 
 class TextSplitter:
-    """Wrapper around LangChain's recursive character splitter."""
+    """Deterministic fixed-size chunker used for all attachments."""
 
     def __init__(self, config: RagConfig | None = None) -> None:
         self.config = config or DEFAULT_CONFIG
-        splitter_cls = self._load_splitter_class()
-        self._splitter = splitter_cls.from_tiktoken_encoder(
+        self._splitter = _FixedWindowSplitter(
             chunk_size=self.config.chunk_size,
             chunk_overlap=self.config.chunk_overlap,
-            disallowed_special=(),
         )
-
-    @staticmethod
-    def _load_splitter_class():
-        try:
-            module = importlib.import_module("langchain.text_splitter")
-        except ImportError as exc:  # pragma: no cover - dependency guard
-            return _FallbackRecursiveSplitter
-        splitter_cls = getattr(module, "RecursiveCharacterTextSplitter", None)
-        if splitter_cls is None:
-            return _FallbackRecursiveSplitter
-        return splitter_cls
 
     def split_record(self, record: DocumentRecord) -> List[DocumentChunk]:
         """Split a single document record into chunks."""
@@ -121,23 +107,12 @@ class TextSplitter:
 __all__ = ["TextSplitter", "DocumentChunk", "ChunkMetadata"]
 
 
-class _FallbackRecursiveSplitter:
-    """Minimal splitter used when LangChain is unavailable."""
+class _FixedWindowSplitter:
+    """Simple fixed-size splitter that enforces consistent chunk sizes."""
 
     def __init__(self, *, chunk_size: int, chunk_overlap: int) -> None:
         self.chunk_size = max(1, chunk_size)
         self.chunk_overlap = max(0, min(chunk_overlap, self.chunk_size - 1))
-
-    @classmethod
-    def from_tiktoken_encoder(
-        cls,
-        *,
-        chunk_size: int,
-        chunk_overlap: int,
-        disallowed_special: Sequence[str] | tuple[str, ...],
-    ):
-        # disallowed_special parameter kept for interface compatibility
-        return cls(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
 
     def split_text(self, text: str) -> List[str]:
         if not text:

@@ -31,21 +31,70 @@ SIMULATED_USER_ID = "simulated_user"
 
 SCENARIO = [
     {
-        "feature": "requirement_clarifier",
+        "feature": "problem_definition",
         "message": "Could you summarize what federated learning is and why organizations use it?",
-        "label": "Foundational knowledge",
+        "label": "Problem definition – overview",
     },
     {
-        "feature": "use_case_generator",
+        "feature": "problem_definition",
+        "message": "List the key pain points Vietnamese mobile users face with current keyboard predictions.",
+        "label": "Problem definition – pain points",
+    },
+    {
+        "feature": "requirements_analysis",
+        "message": "Capture the functional requirements for the federated keyboard assistant, including prioritisation.",
+        "label": "Requirements – functional",
+    },
+    {
+        "feature": "requirements_analysis",
+        "message": "Document the critical non-functional requirements and technical risks we should track.",
+        "label": "Requirements – non-functional",
+    },
+    {
+        "feature": "solution_design",
         "message": (
-            "I need to design a federated learning system that improves keyboard word suggestions for "
-            "Vietnamese users. Highlight potential components."),
-        "label": "Solution ideation",
+            "Propose a high-level architecture for the Vietnamese federated keyboard suggestion system showing key components."),
+        "label": "Solution design – architecture",
     },
     {
-        "feature": "requirement_clarifier",
-        "message": "Please clarify the specific requirements we should gather for that Vietnamese federated keyboard system.",
-        "label": "Requirement deep-dive",
+        "feature": "solution_design",
+        "message": "Recommend design patterns and technology choices to ensure privacy and low latency.",
+        "label": "Solution design – patterns",
+    },
+    {
+        "feature": "prototype_development",
+        "message": "Outline the MVP scope and implementation steps for the first pilot release.",
+        "label": "Prototype – scope",
+    },
+    {
+        "feature": "prototype_development",
+        "message": "Provide concrete code suggestions or tooling tips for building the aggregation service.",
+        "label": "Prototype – build support",
+    },
+    {
+        "feature": "testing_validation",
+        "message": "Draft a test matrix to validate model quality, privacy, and on-device performance.",
+        "label": "Testing – matrix",
+    },
+    {
+        "feature": "testing_validation",
+        "message": "Suggest validation phases and quality gates before rolling out to all users.",
+        "label": "Testing – validation plan",
+    },
+    {
+        "feature": "market_analysis",
+        "message": "Assess the competitor landscape for predictive keyboards in Southeast Asia.",
+        "label": "Market analysis – competitors",
+    },
+    {
+        "feature": "market_analysis",
+        "message": "Recommend target segments and go-to-market ideas for universities or telcos.",
+        "label": "Market analysis – GTM",
+    },
+    {
+        "feature": "documentation",
+        "message": "Generate a Software Requirements Specification (SRS) for the Vietnamese federated keyboard assistant.",
+        "label": "Documentation – SRS export",
     },
 ]
 
@@ -200,7 +249,7 @@ def _print_result(result) -> None:
         print(str(result.summary))
 
     # Show every field the feature returned. Iterate top-level keys so
-    # callers can easily see user_stories, alternate_paths, requirement_backlog, etc.
+    # callers can easily see solution_blueprint, test_matrix, documentation_outline, etc.
     data = result.data if result is not None else None
     if data is None:
         print("<no structured data returned>")

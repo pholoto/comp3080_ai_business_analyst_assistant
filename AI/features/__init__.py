@@ -1,24 +1,26 @@
 """Feature registry for the AIBA assistant."""
 
 from .base import Feature, FeatureContext, FeatureRegistry, FeatureResult
-from .feature_prioritization import FeaturePrioritizationFeature
-from .market_fit_analyzer import MarketFitAnalyzerFeature
-from .report_exporter import BAReportExporterFeature
-from .requirement_clarifier import RequirementClarifierFeature
-from .stakeholder_insights import StakeholderInsightsFeature
-from .use_case_generator import UseCaseGeneratorFeature
+from .documentation import DocumentationFeature
+from .market_analysis import MarketAnalysisFeature
+from .problem_definition import ProblemDefinitionFeature
+from .prototype_development import PrototypeDevelopmentFeature
+from .requirements_analysis import RequirementsAnalysisFeature
+from .solution_design import SolutionDesignFeature
+from .testing_validation import TestingValidationFeature
 
 __all__ = [
     "Feature",
     "FeatureContext",
     "FeatureRegistry",
     "FeatureResult",
-    "RequirementClarifierFeature",
-    "UseCaseGeneratorFeature",
-    "FeaturePrioritizationFeature",
-    "MarketFitAnalyzerFeature",
-    "StakeholderInsightsFeature",
-    "BAReportExporterFeature",
+    "ProblemDefinitionFeature",
+    "RequirementsAnalysisFeature",
+    "SolutionDesignFeature",
+    "PrototypeDevelopmentFeature",
+    "TestingValidationFeature",
+    "DocumentationFeature",
+    "MarketAnalysisFeature",
     "build_default_registry",
 ]
 
@@ -33,10 +35,11 @@ def build_default_registry() -> FeatureRegistry:
         return _create
 
     registry = FeatureRegistry()
-    registry.register("requirement_clarifier", _factory(RequirementClarifierFeature))
-    registry.register("use_case_generator", _factory(UseCaseGeneratorFeature))
-    registry.register("feature_prioritization", _factory(FeaturePrioritizationFeature))
-    registry.register("market_fit_analyzer", _factory(MarketFitAnalyzerFeature))
-    registry.register("stakeholder_insights", _factory(StakeholderInsightsFeature))
-    registry.register("ba_report_export", _factory(BAReportExporterFeature))
+    registry.register("problem_definition", _factory(ProblemDefinitionFeature))
+    registry.register("requirements_analysis", _factory(RequirementsAnalysisFeature))
+    registry.register("solution_design", _factory(SolutionDesignFeature))
+    registry.register("prototype_development", _factory(PrototypeDevelopmentFeature))
+    registry.register("testing_validation", _factory(TestingValidationFeature))
+    registry.register("documentation", _factory(DocumentationFeature))
+    registry.register("market_analysis", _factory(MarketAnalysisFeature))
     return registry

@@ -4,14 +4,15 @@ Perfect — let’s simplify the README so it assumes the user has enough disk s
 
 # AIBA – AI Business Analyst (AI module)
 
-The `AI/` package exposes the AIBA assistant as a FastAPI service plus a set of local testing tools. It bundles six expert features that share the same session memory:
+The `AI/` package exposes the AIBA assistant as a FastAPI service plus a set of local testing tools. It bundles seven expert features that share the same session memory:
 
-- `requirement_clarifier`  
-- `use_case_generator`  
-- `feature_prioritization`  
-- `market_fit_analyzer`  
-- `stakeholder_insights`  
-- `ba_report_export`
+- `problem_definition`  
+- `requirements_analysis`  
+- `solution_design`  
+- `prototype_development`  
+- `testing_validation`  
+- `documentation`  
+- `market_analysis`
 
 ---
 
@@ -87,14 +88,15 @@ python -m AI
 - `POST /sessions` → create a new chat session  
 # AIBA – AI Business Analyst (AI module)
 
-The `AI/` package exposes the AIBA assistant as a FastAPI service plus a set of local testing tools. It bundles six expert features that share the same session memory:
+The `AI/` package exposes the AIBA assistant as a FastAPI service plus a set of local testing tools. It bundles seven expert features that share the same session memory:
 
-- `requirement_clarifier`
-- `use_case_generator`
-- `feature_prioritization`
-- `market_fit_analyzer`
-- `stakeholder_insights`
-- `ba_report_export`
+- `problem_definition`
+- `requirements_analysis`
+- `solution_design`
+- `prototype_development`
+- `testing_validation`
+- `documentation`
+- `market_analysis`
 
 This README focuses on a minimal setup and how to test chunking and the AI output. The assistant uses the public MLVoca text-generation API by default, so no local LLM install is required.
 
@@ -145,7 +147,7 @@ Key endpoints:
 - `POST /sessions/{id}/search` → retrieval over the current index
 - `POST /sessions/{id}/evaluation` → compute Precision@k, Recall@k, MRR, NDCG@k
 
-The `ba_report_export` feature writes a DOCX report using the VinUni template in `back_end/templates/` and saves output under `reports/`.
+The `documentation` feature writes a DOCX report using the VinUni template in `back_end/templates/` and saves output under `reports/` while also producing a structured outline.
 
 ## 3. Test chunking and indexing (offline benchmark)
 
@@ -172,7 +174,7 @@ You can exercise features without running the HTTP server using the console harn
 python -m AI.test_assistant_cli --attachments AI/sample_documents
 ```
 
-- Enter `list` to show available feature keys, then type a feature key (for example `requirement_clarifier`) and provide a message when prompted.
+- Enter `list` to show available feature keys, then type a feature key (for example `problem_definition`) and provide a message when prompted.
 - The CLI returns the feature output. The assistant code attempts to strip internal thinking traces and recover structured JSON where requested.
 - Use `state` to inspect stored requirements, assumptions and attachments in the session.
 

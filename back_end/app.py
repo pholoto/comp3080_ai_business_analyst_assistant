@@ -9,18 +9,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from AI.features import FeatureContext, build_default_registry
+from AI.llm import LLMClient
 from AI.memory import Session, SessionManager
 from AI.schemas import FeatureName
 
 from .rag import (ContextRetriever, DocumentStore, EmbeddingGenerator,
-                  FaissVectorStore, InMemoryVectorStore, RagPipeline, RagQuery,
-                  ResponseGenerator, SimilarityRanker, TextSplitter)
+                  FaissVectorStore, RagPipeline, RagQuery, ResponseGenerator,
+                  SimilarityRanker, TextSplitter)
 from .rag.agents import (IdeationAgent, IdeationRequest, ProgressAgent,
                          ProgressRequest)
 from .rag.config import DEFAULT_CONFIG
+from .rag.context_blocks import build_context_block
 from .rag.document_store import (DuplicateDocumentError,
                                  UnsupportedDocumentError)
-from .rag.prompts import build_context_block
 
 app = FastAPI(title="AI Business Analyst Assistant Backend", version="0.1.0")
 app.add_middleware(
@@ -146,9 +147,10 @@ class RagDependencies:
         self.embedding_generator = EmbeddingGenerator(self.config)
         try:
             self.vector_store = FaissVectorStore(self.config)
-        except ImportError:
-            # Fall back to an in-memory index so local dev & tests work without faiss-cpu.
-            self.vector_store = InMemoryVectorStore()
+        except ImportError as exc:
+            raise RuntimeError(
+                "faiss-cpu is required for document attachments. Install it before starting the backend."
+            ) from exc
         self.retriever = ContextRetriever(
             embedding_generator=self.embedding_generator,
             vector_store=self.vector_store,
@@ -419,7 +421,8 @@ def run_conversational_feature(
             [citation.dict() for citation in citations],
         )
 
-    ctx = FeatureContext(session=session, llm=deps.generator.llm_client)
+    llm_client = cast(LLMClient, deps.generator.llm_client)
+    ctx = FeatureContext(session=session, llm=llm_client)
     try:
         feature = deps.feature_registry.create(payload.feature.value, ctx)
     except KeyError as exc:

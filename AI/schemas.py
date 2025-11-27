@@ -9,12 +9,13 @@ from pydantic import BaseModel, Field
 
 
 class FeatureName(str, Enum):
-    requirement_clarifier = "requirement_clarifier"
-    use_case_generator = "use_case_generator"
-    feature_prioritization = "feature_prioritization"
-    market_fit_analyzer = "market_fit_analyzer"
-    stakeholder_insights = "stakeholder_insights"
-    ba_report_export = "ba_report_export"
+    problem_definition = "problem_definition"
+    requirements_analysis = "requirements_analysis"
+    solution_design = "solution_design"
+    prototype_development = "prototype_development"
+    testing_validation = "testing_validation"
+    documentation = "documentation"
+    market_analysis = "market_analysis"
 
 
 class SessionCreateResponse(BaseModel):
