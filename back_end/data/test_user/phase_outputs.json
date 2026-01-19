@@ -1,0 +1,971 @@
+{
+  "phase1": {
+    "quality_score": {
+      "overall_score": 78.0,
+      "dimensions": [
+        {
+          "name": "Problem Clarity",
+          "score": 90.0,
+          "feedback": "The problem is clearly stated, detailing the issues with Vietnamese keyboard predictions. The language is unambiguous."
+        },
+        {
+          "name": "Pain Point Validity",
+          "score": 95.0,
+          "feedback": "Pain points are specific, well-articulated, and directly related to the problem. The impact on typing speed and privacy is quantified."
+        },
+        {
+          "name": "Market Readiness",
+          "score": 80.0,
+          "feedback": "The large smartphone user base in Vietnam suggests a significant market. The 'Why It Matters' section clearly outlines the market need. Timing is good given the increasing focus on privacy."
+        },
+        {
+          "name": "User Specificity",
+          "score": 85.0,
+          "feedback": "The target user group is well-defined by age, device, and usage patterns. However, further segmentation could explore different regional dialects."
+        },
+        {
+          "name": "Scope Definition",
+          "score": 70.0,
+          "feedback": "The scope is well-bounded to keyboard predictions and data privacy. However, the solution space is broad; defining specific features or functionalities would enhance the scope's achievability."
+        }
+      ],
+      "summary": "The problem definition is strong, with clear pain points and a defined target audience. The market opportunity is evident. To improve, further refine the scope by specifying key features and consider segmenting the user base by regional dialects. Focus on the value proposition of on-device processing to address privacy concerns."
+    },
+    "normalized_summary": {
+      "summary": "Vietnamese-speaking mobile users aged 18-45 face challenges with keyboard predictions that fail to accurately understand Vietnamese language nuances, diacritics, and regional expressions. This results in frequent manual corrections, slower typing speeds, and frustration. Additionally, users are concerned about the privacy of their typing data being sent to cloud servers, particularly for sensitive communications.",
+      "key_elements": {
+        "who": "Vietnamese-speaking mobile phone users aged 18-45",
+        "what": "Typing efficiently in Vietnamese with accurate predictions",
+        "why_hard": "Current keyboards do not capture Vietnamese language nuances well, leading to errors and slow typing, and there are privacy concerns with cloud-based data processing."
+      }
+    },
+    "personas": {
+      "primary_user": {
+        "role": "Young Vietnamese professional aged 25-35, frequently typing in Vietnamese for work and personal communication",
+        "context": "Using Android mobile devices for messaging, social media, and work-related communication throughout the day",
+        "goal": "To type Vietnamese quickly and accurately with minimal manual corrections, while keeping typing data private and on-device",
+        "urgency": "High - daily communication needs and productivity impact",
+        "failure_consequence": "Reduced productivity, communication errors, increased frustration, and potential privacy breaches"
+      },
+      "secondary_users": [
+        {
+          "role": "Vietnamese college student aged 18-24, using Vietnamese for academic and social communication",
+          "context": "Typing on Android devices for group projects, social media, and personal messaging",
+          "goal": "Efficient typing with accurate diacritics and slang recognition, while maintaining data privacy",
+          "urgency": "Medium - academic and social communication needs",
+          "failure_consequence": "Slower communication, potential misunderstandings, and privacy concerns"
+        },
+        {
+          "role": "Vietnamese business owner aged 35-45, using Vietnamese for client communication and internal messaging",
+          "context": "Typing on Android devices for professional and personal communication throughout the workday",
+          "goal": "Fast and accurate typing with privacy-preserving features to ensure sensitive information remains secure",
+          "urgency": "High - professional reputation and client communication impact",
+          "failure_consequence": "Communication errors, reduced professionalism, and potential data breaches"
+        }
+      ],
+      "mvp_focus_rationale": "The young Vietnamese professional is the primary focus for the MVP because they represent a large, tech-savvy demographic with high daily typing needs and strong privacy concerns. Their frequent use of Vietnamese for both work and personal communication ensures that improvements in typing efficiency and privacy will have a significant, measurable impact. Addressing their needs first will also provide a strong foundation for expanding to other user groups, such as students and older business users, in future iterations."
+    },
+    "pain_moments": [
+      {
+        "moment": "The Midnight Message Mishap",
+        "trigger": "A young professional texting her boss at 11 PM to fix an urgent work query, the keyboard predicts bland English approximations for Vietnamese diacritics like 'cần' becoming 'can' instead of the correct 'cần'",
+        "current_behavior": "She pauses mid-sentence, taps back to delete and manually adds diacritics by holding keys, shaking her head as the screen fills with auto-correct errors",
+        "why_it_hurts": "Frustration builds, the message takes twice as long, risking a misunderstanding with her boss, and she feels incompetent despite her fluency"
+      },
+      {
+        "moment": "The Slang Swap Frustration in Social Media",
+        "trigger": "A student posting on Facebook about a local food stall, typing 'bún bò Huế' as slangy 'bún riêu' but the keyboard suggests irrelevant English food terms or mispredicts to 'bun bo hue' without proper tones",
+        "current_behavior": "He switches to typing full words manually, ignoring predictions, but ends up correcting each word laboriously, sometimes deleting entire posts to restart",
+        "why_it_hurts": "It triples typing time, making casual sharing feel like a chore, embarrassing him when friends misinterpret his intent and damaging his social connectedness"
+      },
+      {
+        "moment": "The Privacy Panic During a Family Chat",
+        "trigger": "A 25-year-old mother discussing private family finances in a group chat with relatives, noticing the app icon indicating data syncing to the cloud for improved predictions",
+        "current_behavior": "She hesitates, types in shorthand to avoid full phrases, or switches to a basic keyboard, but still feels uneasy as notifications remind her of potential eavesdropping",
+        "why_it_hurts": "Ongoing anxiety about data breaches for sensitive topics like money or health advice, leading to censored communication that feels inauthentic and strained relationships"
+      },
+      {
+        "moment": "The English-Vietnamese Shuffle at Work",
+        "trigger": "A business user in a Zoom meeting, alternating between English emails and Vietnamese client notes, where the keyboard clunkily auto-switches languages, mispredicting 'data' as 'da ta' or 'khỏi' as 'thoi'",
+        "current_behavior": "He manually toggles the language switch mid-sentence, corrects every other word, often resorting to copy-pasting from past messages to speed up",
+        "why_it_hurts": "Efficiency drops by 40%, causing delays in work tasks, heightened stress during deadlines, and a sense of being held back despite mastering both languages"
+      },
+      {
+        "moment": "The Unlearned Pattern Blues During Dating",
+        "trigger": "A single user texting a crush with personalized Vietnamese pet names and insider jokes, but after a week, the keyboard still doesn't recognize phrases like 'chịu quá' as a common expression",
+        "current_behavior": "She repeatedly overrides suggestions with manual input, trains the language by repeating words, but monotony sets in as predictions fail to improve over time",
+        "why_it_hurts": "Intimate conversations become burdensome, reducing intimacy and fun, making her feel like technology doesn't understand her life, leading to self-doubt in her tech-savvy image"
+      }
+    ],
+    "root_causes": [
+      {
+        "cause": "Insufficient training data for Vietnamese language nuances",
+        "category": "Technical",
+        "explanation": "Existing models are trained on generic datasets that lack the specific diacritics, slang, and regional expressions of Vietnamese, leading to poor predictions."
+      },
+      {
+        "cause": "Reliance on cloud-based processing for prediction improvements",
+        "category": "Technical",
+        "explanation": "Current keyboard apps rely on cloud servers to improve prediction accuracy, raising privacy concerns and preventing on-device learning."
+      },
+      {
+        "cause": "Lack of effective on-device learning mechanisms",
+        "category": "Technical",
+        "explanation": "Existing keyboards don't effectively learn from individual user typing patterns, hindering personalized predictions."
+      },
+      {
+        "cause": "User concerns about data privacy and security",
+        "category": "Psychology",
+        "explanation": "Users are hesitant to use cloud-based features due to privacy concerns, especially when typing sensitive information."
+      }
+    ],
+    "existing_solutions_analysis": [
+      {
+        "name": "Gboard",
+        "description": "Google's keyboard app with general prediction capabilities",
+        "strengths": [
+          "Broad language support",
+          "Integration with Google services"
+        ],
+        "weaknesses": [
+          "Weak on Vietnamese diacritics",
+          "Requires cloud processing"
+        ],
+        "gap": "Fails to address Vietnamese language nuances and regional expressions adequately, and raises privacy concerns due to cloud dependency."
+      },
+      {
+        "name": "Laban Key",
+        "description": "Vietnamese-focused keyboard app",
+        "strengths": [
+          "Localized for Vietnamese",
+          "Supports diacritics"
+        ],
+        "weaknesses": [
+          "Outdated ML models",
+          "Limited personalization"
+        ],
+        "gap": "Lacks modern machine learning capabilities and effective personalization, hindering accurate and adaptive predictions."
+      },
+      {
+        "name": "OpenKey",
+        "description": "Keyboard app focusing on input methods",
+        "strengths": [
+          "Customizable input methods",
+          "Lightweight"
+        ],
+        "weaknesses": [
+          "Limited prediction capabilities",
+          "No advanced ML features"
+        ],
+        "gap": "Does not provide intelligent predictions tailored to Vietnamese language nuances, focusing merely on input methods."
+      }
+    ],
+    "impact_stakes": [
+      {
+        "category": "Time",
+        "description": "Slower typing speeds due to constant manual corrections and language switching, wasting productive hours for frequent users.",
+        "quantification": "30-40% reduction in typing speed per session, potentially 1-3 hours wasted daily for users typing 2-4 hours"
+      },
+      {
+        "category": "Emotional",
+        "description": "Frustration and anxiety from persistent typing errors and communication mistakes, leading to reduced enjoyment in personal and professional interactions.",
+        "quantification": "50-70% of users experiencing high frustration levels, affecting mood 2-5 times weekly in messaging scenarios"
+      },
+      {
+        "category": "Opportunity",
+        "description": "Missed professional opportunities due to inefficient communication, hindering career advancement for young professionals and business users.",
+        "quantification": "20-35% of frequent typers report delayed responses impacting 5-15% of work-related communications monthly"
+      },
+      {
+        "category": "Financial",
+        "description": "Productivity losses for business users and potential costs from privacy breaches or data exploitation concerns deter adoption of cloud features.",
+        "quantification": "10-50 million USD in aggregate productivity loss annually across Vietnamese users, plus 20-30% lower engagement with data-driven apps due to privacy fears"
+      },
+      {
+        "category": "Reputational",
+        "description": "Damage to the reputation of tech companies offering keyboards that fail to support Vietnamese nuances, eroding user trust.",
+        "quantification": "30-50% of users dissatisfied with current solutions, leading to negative reviews and app store ratings dropping 1-2 stars on average"
+      },
+      {
+        "category": "Other",
+        "description": "Privacy risks from uploading typing data to cloud servers, exposing sensitive personal or business information to potential breaches.",
+        "quantification": "40-60% of users reporting concerns, with breach incidents potentially affecting 1-5% of data uploads yearly in similar scenarios (based on industry reports)"
+      },
+      {
+        "category": "Academic",
+        "description": "Students face challenges with accurate typing in educational contexts, impacting assignment quality and learning efficiency.",
+        "quantification": "25-40% of student users spending extra 10-30 minutes per assignment on corrections, reducing study time by 10-25% per week"
+      }
+    ],
+    "scope_boundary": {
+      "exclusions": [
+        "Not addressing the development of a full-fledged mobile keyboard application, focusing solely on the prediction engine.",
+        "Not providing a user interface or design for the keyboard application.",
+        "Not including the development of new input methods beyond prediction improvements.",
+        "Not focusing on English language prediction.",
+        "Not considering hardware limitations of specific mobile devices."
+      ],
+      "rationale": "These boundaries are important to maintain focus on improving the core prediction capabilities for the Vietnamese language while ensuring data privacy, allowing for a more manageable scope and faster development cycle. This approach allows for integration with existing keyboard applications."
+    },
+    "transition_questions": [
+      "What specific Vietnamese language nuances and diacritics are most frequently missed by current keyboard predictions?",
+      "How should the keyboard handle regional slang and informal expressions to improve recognition?",
+      "What mechanisms can be implemented to ensure typing data remains on-device for privacy?",
+      "What features are needed to enable seamless switching between Vietnamese and English?",
+      "How can the keyboard effectively learn and adapt to individual users' typing patterns without cloud processing?"
+    ]
+  },
+  "phase2": {
+    "normalized_features": [
+      {
+        "original_name": "Vietnamese diacritic prediction with tone marks",
+        "normalized_name": "Type Vietnamese with accurate diacritics and tone marks",
+        "category": "core",
+        "description": "Enable users to type Vietnamese words with correct diacritics and tone marks, improving prediction accuracy."
+      },
+      {
+        "original_name": "On-device federated learning for personalization",
+        "normalized_name": "Personalize typing predictions without sending data to the cloud",
+        "category": "core",
+        "description": "Allow the keyboard to learn from user typing patterns on-device, ensuring privacy while improving predictions."
+      },
+      {
+        "original_name": "Privacy-preserving model updates",
+        "normalized_name": "Keep typing data private during model updates",
+        "category": "core",
+        "description": "Ensure model updates occur without compromising user privacy, adhering to Vietnamese data regulations."
+      },
+      {
+        "original_name": "Regional slang and informal expression support",
+        "normalized_name": "Recognize regional slang and informal expressions",
+        "category": "enhancement",
+        "description": "Improve prediction accuracy for regional Vietnamese slang and informal expressions, enhancing user relevance."
+      },
+      {
+        "original_name": "Bilingual Vietnamese-English seamless switching",
+        "normalized_name": "Switch seamlessly between Vietnamese and English",
+        "category": "enhancement",
+        "description": "Enable smooth language switching without disrupting typing flow or prediction accuracy."
+      },
+      {
+        "original_name": "Offline mode with full functionality",
+        "normalized_name": "Use the keyboard fully offline",
+        "category": "core",
+        "description": "Ensure all keyboard features, including predictions, work without an internet connection."
+      },
+      {
+        "original_name": "User typing pattern learning",
+        "normalized_name": "Adapt predictions to individual typing patterns",
+        "category": "core",
+        "description": "Learn and adapt to individual user typing habits for more accurate and personalized predictions."
+      },
+      {
+        "original_name": "Secure aggregation for model updates",
+        "normalized_name": "Update models securely without exposing user data",
+        "category": "core",
+        "description": "Implement secure aggregation techniques to update models without compromising user privacy."
+      },
+      {
+        "original_name": "Custom dictionary for user-specific terms",
+        "normalized_name": "Add custom words and phrases to predictions",
+        "category": "enhancement",
+        "description": "Allow users to add personal terms and phrases to the dictionary for better prediction accuracy."
+      },
+      {
+        "original_name": "Swipe typing support for Vietnamese",
+        "normalized_name": "Type Vietnamese by swiping",
+        "category": "nice-to-have",
+        "description": "Enable swipe typing for Vietnamese, offering an alternative input method for faster typing."
+      },
+      {
+        "original_name": "Voice-to-text with Vietnamese dialect support",
+        "normalized_name": "Dictate messages with Vietnamese dialect recognition",
+        "category": "future",
+        "description": "Support voice-to-text functionality with accurate recognition of Vietnamese dialects."
+      },
+      {
+        "original_name": "Emoji and sticker predictions based on context",
+        "normalized_name": "Get emoji and sticker suggestions based on what you're typing",
+        "category": "nice-to-have",
+        "description": "Provide contextually relevant emoji and sticker suggestions to enhance messaging."
+      }
+    ],
+    "functional_requirements": [
+      {
+        "id": "FR-001",
+        "name": "Vietnamese Diacritic Prediction with Tone Marks",
+        "description": "The system must predict and suggest Vietnamese words with accurate diacritics and tone marks as the user types.",
+        "category": "AI/ML",
+        "moscow_priority": "must-have",
+        "complexity": "medium",
+        "rationale": "This is core to the MVP goal of achieving 85% prediction accuracy for Vietnamese words, directly addressing pain points like manual corrections and slow typing.",
+        "acceptance_criteria": [
+          "Prediction accuracy reaches at least 85% for words with diacritics in a test set of Vietnamese phrases.",
+          "Suggestions include proper tone marks consistent with Vietnamese grammar."
+        ]
+      },
+      {
+        "id": "FR-002",
+        "name": "On-Device Federated Learning for Personalization",
+        "description": "The system must enable federated learning techniques to personalize predictions based on user typing patterns without sending data off-device.",
+        "category": "AI/ML",
+        "moscow_priority": "must-have",
+        "complexity": "high",
+        "rationale": "Essential for on-device data privacy, aligning with MVP goal and user concerns about cloud-based processing, using team's TensorFlow expertise.",
+        "acceptance_criteria": [
+          "All user typing data remains on-device and is not transmitted to external servers.",
+          "Predictions improve over time based on user input without compromising privacy."
+        ]
+      },
+      {
+        "id": "FR-003",
+        "name": "Privacy-Preserving Model Updates",
+        "description": "The system must update prediction models using secure, privacy-preserving methods that aggregate data anonymously.",
+        "category": "Authentication/Security",
+        "moscow_priority": "must-have",
+        "complexity": "medium",
+        "rationale": "Critically important to comply with Vietnamese data privacy regulations and address user pain points on privacy breaches.",
+        "acceptance_criteria": [
+          "Model updates occur without collecting or storing personally identifiable typing data.",
+          "Compliance with Vietnamese data privacy laws is verified through audits."
+        ]
+      },
+      {
+        "id": "FR-004",
+        "name": "Regional Slang and Informal Expression Support",
+        "description": "The system must recognize and predict regional Vietnamese slang and informal expressions accurately.",
+        "category": "AI/ML",
+        "moscow_priority": "should-have",
+        "complexity": "medium",
+        "rationale": "Enhances prediction accuracy for diverse user contexts, particularly for young professionals using varied expressions in communication.",
+        "acceptance_criteria": [
+          "Predictions include common regional slang (e.g., 'bún riêu' variations) with at least 80% accuracy in test scenarios.",
+          "Improves typing speed by reducing manual corrections for informal phrases."
+        ]
+      },
+      {
+        "id": "FR-005",
+        "name": "Bilingual Vietnamese-English Seamless Switching",
+        "description": "The system must facilitate automatic or manual switching between Vietnamese and English predictions without user interruption.",
+        "category": "AI/ML",
+        "moscow_priority": "should-have",
+        "complexity": "medium",
+        "rationale": "Supports the user's need for bilingual communication, reducing time wasted on language toggles as highlighted in pain moments.",
+        "acceptance_criteria": [
+          "Automatic detection and switching between languages in mixed-content inputs occurs seamlessly.",
+          "Manual override for language switching is available with minimal steps."
+        ]
+      },
+      {
+        "id": "FR-006",
+        "name": "Offline Mode with Full Functionality",
+        "description": "The system must provide complete prediction capabilities without requiring internet connectivity.",
+        "category": "Infrastructure",
+        "moscow_priority": "must-have",
+        "complexity": "low",
+        "rationale": "Core to on-device goal, ensuring usability in areas without internet and meeting MVP privacy requirements.",
+        "acceptance_criteria": [
+          "All functionalities work offline, including predictions and learning.",
+          "No performance degradation in offline mode compared to online."
+        ]
+      },
+      {
+        "id": "FR-007",
+        "name": "User Typing Pattern Learning",
+        "description": "The system must learn and adapt to individual user typing patterns for improved personalized suggestions.",
+        "category": "AI/ML",
+        "moscow_priority": "must-have",
+        "complexity": "medium",
+        "rationale": "Directly supports personalization for faster, more accurate typing as per user goals and pain points.",
+        "acceptance_criteria": [
+          "Predictions adapt to user patterns after a minimum of 1000 input characters.",
+          "Personalized phrases (e.g., pet names) are suggested after initial learning period."
+        ]
+      },
+      {
+        "id": "FR-008",
+        "name": "Secure Aggregation for Model Updates",
+        "description": "The system must securely aggregate anonymized user data for updating models across users.",
+        "category": "Authentication/Security",
+        "moscow_priority": "should-have",
+        "complexity": "high",
+        "rationale": "Enables federated learning improvements while maintaining privacy, crucial for long-term model evolution.",
+        "acceptance_criteria": [
+          "Aggregated data cannot be reverse-engineered to identify individual users.",
+          "Model updates incorporate aggregated insights without breaching data privacy."
+        ]
+      },
+      {
+        "id": "FR-009",
+        "name": "Custom Dictionary for User-Specific Terms",
+        "description": "The system must allow users to add and manage a custom dictionary of terms for enhanced predictions.",
+        "category": "Database",
+        "moscow_priority": "should-have",
+        "complexity": "low",
+        "rationale": "Enables customization for user-specific vocabulary, improving relevance and reducing corrections.",
+        "acceptance_criteria": [
+          "Users can add new terms, which are prioritized in predictions.",
+          "Dictionary persists across sessions without data export."
+        ]
+      },
+      {
+        "id": "FR-010",
+        "name": "Swipe Typing Support for Vietnamese",
+        "description": "The system must support swipe gestures to input Vietnamese words with accurate predictions.",
+        "category": "User Interface",
+        "moscow_priority": "should-have",
+        "complexity": "medium",
+        "rationale": "Improves typing efficiency for mobile users, complementing traditional typing for faster input.",
+        "acceptance_criteria": [
+          "Swipe gestures correctly predict Vietnamese words with diacritics.",
+          "Error rate for swipe inputs is below 10% in test scenarios."
+        ]
+      },
+      {
+        "id": "FR-011",
+        "name": "Voice-to-Text with Vietnamese Dialect Support",
+        "description": "The system must convert spoken Vietnamese, including dialects, into accurate text predictions.",
+        "category": "AI/ML",
+        "moscow_priority": "could-have",
+        "complexity": "high",
+        "rationale": "Adds multimodal input option, but complexity and mobile dev constraints may delay its inclusion in MVP.",
+        "acceptance_criteria": [
+          "Speech recognition accuracy exceeds 90% for standard Vietnamese speech.",
+          "Dialect-specific phrases are transcribed correctly in at least 80% of test cases."
+        ]
+      },
+      {
+        "id": "FR-012",
+        "name": "Emoji and Sticker Predictions Based on Context",
+        "description": "The system must suggest relevant emojis and stickers based on the context of Vietnamese input.",
+        "category": "AI/ML",
+        "moscow_priority": "could-have",
+        "complexity": "medium",
+        "rationale": "Enhances user experience in messaging, but not essential for core prediction accuracy in MVP.",
+        "acceptance_criteria": [
+          "Contextual suggestions match conversational intent in 75% of test interactions.",
+          "Suggestions include culturally relevant Vietnamese-themed stickers/emojis."
+        ]
+      },
+      {
+        "id": "FR-013",
+        "name": "Model Size Optimization for On-Device Deployment",
+        "description": "The system must ensure the AI model size remains under 50MB for efficient on-device storage.",
+        "category": "Performance",
+        "moscow_priority": "must-have",
+        "complexity": "medium",
+        "rationale": "Meets hardware constraints for Android devices with 2GB+ RAM, enabling deployment without performance issues.",
+        "acceptance_criteria": [
+          "Total model footprint is under 50MB.",
+          "Deployment succeeds on Android devices with 2GB RAM."
+        ]
+      },
+      {
+        "id": "FR-014",
+        "name": "Minimal Battery Impact",
+        "description": "The system must ensure additional battery drain is less than 5% during typical usage.",
+        "category": "Performance",
+        "moscow_priority": "must-have",
+        "complexity": "medium",
+        "rationale": "Critical for user acceptance on mobile devices, aligning with team constraints for Android optimization.",
+        "acceptance_criteria": [
+          "Battery usage increase is measured and confirmed below 5% in benchmarking tests.",
+          "Performance remains stable over extended typing sessions."
+        ]
+      },
+      {
+        "id": "FR-015",
+        "name": "Compliance with Vietnamese Data Privacy Regulations",
+        "description": "The system must adhere to Vietnamese data privacy laws by not collecting or processing personal data off-device.",
+        "category": "Authentication/Security",
+        "moscow_priority": "must-have",
+        "complexity": "low",
+        "rationale": "Legal requirement for the Vietnamese market, directly supporting MVP's privacy focus.",
+        "acceptance_criteria": [
+          "No data is transmitted externally for personalization or updates.",
+          "Audit confirms compliance with relevant regulations."
+        ]
+      }
+    ],
+    "non_functional_requirements": [
+      {
+        "id": "NFR-001",
+        "attribute": "Performance",
+        "requirement": "The system must predict Vietnamese words with diacritics with 85% accuracy.",
+        "category": "Performance",
+        "moscow_priority": "must-have",
+        "complexity": "high",
+        "metric": "Prediction accuracy >= 85%",
+        "rationale": "High prediction accuracy directly impacts user satisfaction and typing efficiency."
+      },
+      {
+        "id": "NFR-002",
+        "attribute": "Security",
+        "requirement": "All personal typing data must remain on-device.",
+        "category": "Other",
+        "moscow_priority": "must-have",
+        "complexity": "medium",
+        "metric": "Zero data transmission to external servers",
+        "rationale": "Ensuring data privacy and compliance with Vietnamese data privacy regulations."
+      },
+      {
+        "id": "NFR-003",
+        "attribute": "Scalability",
+        "requirement": "The system must support at least 100,000 concurrent users.",
+        "category": "Other",
+        "moscow_priority": "should-have",
+        "complexity": "high",
+        "metric": "Support >= 100,000 concurrent users",
+        "rationale": "Scalability ensures the system can handle a large user base without performance degradation."
+      },
+      {
+        "id": "NFR-004",
+        "attribute": "Usability",
+        "requirement": "The system should allow seamless switching between Vietnamese and English.",
+        "category": "Other",
+        "moscow_priority": "must-have",
+        "complexity": "medium",
+        "metric": "Language switch latency < 1 second",
+        "rationale": "Efficient language switching enhances user experience, especially for bilingual users."
+      },
+      {
+        "id": "NFR-005",
+        "attribute": "Reliability",
+        "requirement": "The system must operate offline with full functionality.",
+        "category": "Other",
+        "moscow_priority": "must-have",
+        "complexity": "high",
+        "metric": "100% functionality in offline mode",
+        "rationale": "Offline capability ensures consistent performance regardless of network availability."
+      },
+      {
+        "id": "NFR-006",
+        "attribute": "Maintainability",
+        "requirement": "The system should be modular to facilitate updates and maintenance.",
+        "category": "Other",
+        "moscow_priority": "should-have",
+        "complexity": "medium",
+        "metric": "Modularity score >= 8/10",
+        "rationale": "Modular design simplifies updates and maintenance, reducing long-term costs."
+      },
+      {
+        "id": "NFR-007",
+        "attribute": "Portability",
+        "requirement": "The system must be compatible with Android devices with 2GB+ RAM.",
+        "category": "Other",
+        "moscow_priority": "must-have",
+        "complexity": "low",
+        "metric": "Compatibility with Android 8.0+ devices",
+        "rationale": "Ensures broad accessibility across a wide range of Android devices."
+      },
+      {
+        "id": "NFR-008",
+        "attribute": "Other",
+        "requirement": "The model size must be under 50MB for on-device deployment.",
+        "category": "Other",
+        "moscow_priority": "must-have",
+        "complexity": "medium",
+        "metric": "Model size < 50MB",
+        "rationale": "Keeping the model size small ensures it can be deployed on devices with limited storage."
+      }
+    ],
+    "mvp_scope": {
+      "included_features": [
+        {
+          "feature_name": "Type Vietnamese with accurate diacritics and tone marks",
+          "justification": "Core to achieving 85% prediction accuracy for Vietnamese words, addressing primary user pain points.",
+          "estimated_effort": "medium"
+        },
+        {
+          "feature_name": "Personalize typing predictions without sending data to the cloud",
+          "justification": "Essential for on-device learning and privacy compliance, directly supporting the MVP goal.",
+          "estimated_effort": "high"
+        },
+        {
+          "feature_name": "Keep typing data private during model updates",
+          "justification": "Critical for maintaining user trust and complying with Vietnamese data privacy regulations.",
+          "estimated_effort": "medium"
+        },
+        {
+          "feature_name": "Use the keyboard fully offline",
+          "justification": "Ensures full functionality without internet, aligning with user needs and technical constraints.",
+          "estimated_effort": "low"
+        },
+        {
+          "feature_name": "Adapt predictions to individual typing patterns",
+          "justification": "Key for personalized predictions, improving user experience and accuracy over time.",
+          "estimated_effort": "medium"
+        },
+        {
+          "feature_name": "Update models securely without exposing user data",
+          "justification": "Ensures privacy-preserving model updates, a core requirement for the MVP.",
+          "estimated_effort": "high"
+        }
+      ],
+      "excluded_features": [
+        "Recognize regional slang and informal expressions",
+        "Switch seamlessly between Vietnamese and English",
+        "Add custom words and phrases to predictions",
+        "Type Vietnamese by swiping",
+        "Dictate messages with Vietnamese dialect recognition",
+        "Get emoji and sticker suggestions based on what you're typing"
+      ],
+      "mvp_rationale": "The MVP focuses on core features essential for achieving 85% prediction accuracy for Vietnamese diacritics while ensuring on-device privacy. Excluded features, though valuable, are enhancements or nice-to-haves that can be addressed in future iterations. This scope ensures feasibility within the 6-month timeline and aligns with the team's skill level and technical constraints.",
+      "estimated_timeline": "6 months"
+    },
+    "scope_warnings": [
+      {
+        "warning_type": "Technical Risk",
+        "description": "Achieving 85% prediction accuracy for Vietnamese words with diacritics while keeping all data on-device is highly complex, especially with limited mobile development experience.",
+        "severity": "High",
+        "mitigation": "Focus on core prediction accuracy first, leveraging TensorFlow expertise, and consider phasing advanced features."
+      },
+      {
+        "warning_type": "Resource Risk",
+        "description": "The team's mixed experience, particularly limited mobile development expertise, may delay implementation and introduce bugs.",
+        "severity": "Medium",
+        "mitigation": "Invest in training or hiring mobile development experts early in the project."
+      },
+      {
+        "warning_type": "Timeline Risk",
+        "description": "The 6-month deadline is ambitious given the complexity of federated learning, privacy-preserving updates, and Vietnamese language nuances.",
+        "severity": "High",
+        "mitigation": "Prioritize MVP features and defer non-critical functionalities like voice-to-text and emoji predictions to later phases."
+      },
+      {
+        "warning_type": "Integration Risk",
+        "description": "On-device federated learning and secure aggregation require seamless integration with Android, which may pose challenges due to hardware constraints.",
+        "severity": "Medium",
+        "mitigation": "Conduct early prototyping to validate integration feasibility on 2GB+ RAM devices."
+      },
+      {
+        "warning_type": "Scope Creep Risk",
+        "description": "Features like voice-to-text, swipe typing, and emoji predictions could expand scope beyond the MVP goal.",
+        "severity": "Medium",
+        "mitigation": "Strictly adhere to MVP priorities and defer non-essential features to post-MVP phases."
+      },
+      {
+        "warning_type": "Other",
+        "description": "Compliance with Vietnamese data privacy regulations adds complexity, particularly for secure aggregation and model updates.",
+        "severity": "Medium",
+        "mitigation": "Engage legal experts early to ensure compliance and streamline privacy-preserving mechanisms."
+      }
+    ]
+  },
+  "phase3": {
+    "market_research": {
+      "overview": "The Vietnamese mobile keyboard market, particularly focusing on AI-driven prediction engines, is poised for growth due to increasing smartphone penetration and language-specific typing needs. With a large user base of Vietnamese speakers, there is a clear demand for keyboards that accurately handle Vietnamese diacritics, slang, and regional expressions while maintaining privacy and efficiency.",
+      "market_size": {
+        "metric": "Total Addressable Market",
+        "value": "$50 million",
+        "source": "Statista",
+        "year": "2023"
+      },
+      "growth_rate": {
+        "metric": "YoY Growth Rate",
+        "value": "12.5%",
+        "source": "IBISWorld",
+        "year": "2023"
+      },
+      "key_statistics": [
+        {
+          "metric": "Smartphone Penetration in Vietnam",
+          "value": "72%",
+          "source": "Statista",
+          "year": "2023"
+        },
+        {
+          "metric": "Vietnamese-speaking Mobile Users",
+          "value": "60 million",
+          "source": "Statista",
+          "year": "2023"
+        }
+      ],
+      "key_trends": [
+        "Increasing focus on data privacy",
+        "Rising demand for localized language support"
+      ],
+      "market_drivers": [
+        "High smartphone penetration",
+        "Growing awareness of data privacy"
+      ],
+      "market_challenges": [
+        "Complexity of Vietnamese language nuances",
+        "Regulatory compliance with data privacy"
+      ],
+      "sources": [
+        "https://www.statista.com",
+        "https://www.ibisworld.com"
+      ]
+    },
+    "porters_analysis": {
+      "supplier_power": {
+        "force": "Supplier Power",
+        "strength": "moderate",
+        "analysis": "Suppliers in the AI keyboard industry have moderate power due to the availability of alternative providers for machine learning frameworks, cloud services, and language datasets. However, specialized Vietnamese language datasets and on-device processing technologies are less commoditized, giving certain suppliers more leverage. The industry's reliance on open-source tools like TensorFlow also reduces supplier power.",
+        "key_factors": [
+          "Availability of alternative suppliers",
+          "Specialized Vietnamese language datasets",
+          "Open-source technology reliance"
+        ]
+      },
+      "buyer_power": {
+        "force": "Buyer Power",
+        "strength": "high",
+        "analysis": "Buyers (end-users and app developers) have high power due to the availability of multiple free and paid keyboard apps. Users can easily switch between competitors like Gboard, SwiftKey, and Laban Key. The low switching costs and high price sensitivity in the mobile app market further strengthen buyer power.",
+        "key_factors": [
+          "Low switching costs",
+          "Multiple free alternatives",
+          "High price sensitivity"
+        ]
+      },
+      "competitive_rivalry": {
+        "force": "Competitive Rivalry",
+        "strength": "high",
+        "analysis": "Competitive rivalry is high due to the presence of established players like Google Gboard, SwiftKey, and Laban Key. These competitors offer similar features, and the market is characterized by rapid innovation in AI-driven predictions and privacy features. The race to capture Vietnamese-speaking users intensifies competition.",
+        "key_factors": [
+          "Established competitors",
+          "Rapid innovation",
+          "Market saturation"
+        ]
+      },
+      "threat_of_substitution": {
+        "force": "Threat of Substitution",
+        "strength": "moderate",
+        "analysis": "The threat of substitution is moderate. While alternative input methods like voice-to-text and handwriting recognition exist, they are not yet fully mature for Vietnamese. Traditional physical keyboards also pose a threat, but the convenience of mobile keyboards limits their appeal to niche users.",
+        "key_factors": [
+          "Voice-to-text alternatives",
+          "Physical keyboards",
+          "Immature substitution technologies"
+        ]
+      },
+      "threat_of_new_entry": {
+        "force": "Threat of New Entry",
+        "strength": "low",
+        "analysis": "The threat of new entry is low due to high barriers such as the need for advanced AI/ML expertise, access to specialized Vietnamese language datasets, and compliance with data privacy regulations. Established players also have strong brand recognition and user bases, making it difficult for new entrants to gain traction.",
+        "key_factors": [
+          "High technical barriers",
+          "Data privacy compliance",
+          "Strong incumbent brands"
+        ]
+      },
+      "overall_assessment": "The AI keyboard industry for Vietnamese users is highly competitive with strong buyer power and established rivals. While supplier power and substitution threats are moderate, the high barriers to entry provide some protection for existing players. Success requires differentiation in privacy, accuracy, and personalization.",
+      "strategic_implications": [
+        "Focus on on-device processing and privacy to differentiate from cloud-dependent competitors.",
+        "Invest in specialized Vietnamese language models to improve prediction accuracy.",
+        "Leverage open-source tools to reduce supplier dependency and accelerate innovation.",
+        "Enhance user personalization features to build loyalty and reduce switching."
+      ]
+    },
+    "competitor_analysis": {
+      "competitors": [
+        {
+          "name": "Google Gboard",
+          "description": "Google's virtual keyboard app with wide language support and AI predictions.",
+          "business_model": "Free-to-use, monetized through integration with Google services and ads.",
+          "target_customer": "Global smartphone users.",
+          "strengths": [
+            "Broad language support",
+            "Integration with Google services",
+            "Advanced AI capabilities"
+          ],
+          "weaknesses": [
+            "Weak on Vietnamese diacritics",
+            "Cloud dependency raises privacy concerns"
+          ],
+          "opportunities": [
+            "Expanding language-specific features"
+          ],
+          "threats": [
+            "Privacy regulations",
+            "Competition from specialized keyboards"
+          ],
+          "pricing_model": "Free",
+          "market_share": "High (leading keyboard app globally)",
+          "key_differentiators": [
+            "Google ecosystem integration",
+            "Extensive language support"
+          ]
+        },
+        {
+          "name": "Laban Key",
+          "description": "Vietnamese-focused keyboard app with localized features.",
+          "business_model": "Free-to-use, potentially monetized through ads or premium features.",
+          "target_customer": "Vietnamese-speaking users.",
+          "strengths": [
+            "Localized for Vietnamese",
+            "Supports diacritics",
+            "Lightweight"
+          ],
+          "weaknesses": [
+            "Outdated ML models",
+            "Limited personalization",
+            "Lacks advanced features"
+          ],
+          "opportunities": [
+            "Modernizing prediction models",
+            "Expanding regional slang support"
+          ],
+          "threats": [
+            "Competition from global players",
+            "Limited resources for innovation"
+          ],
+          "pricing_model": "Free",
+          "market_share": "Low (niche audience)",
+          "key_differentiators": [
+            "Vietnamese language focus",
+            "Localized features"
+          ]
+        },
+        {
+          "name": "OpenKey",
+          "description": "Lightweight keyboard app focusing on input methods.",
+          "business_model": "Free-to-use, possibly monetized via donations or premium features.",
+          "target_customer": "Users seeking customizable input methods.",
+          "strengths": [
+            "Customizable input methods",
+            "Lightweight",
+            "Simple interface"
+          ],
+          "weaknesses": [
+            "Limited prediction capabilities",
+            "No advanced AI/ML features"
+          ],
+          "opportunities": [
+            "Adding intelligent predictions",
+            "Expanding language support"
+          ],
+          "threats": [
+            "Competition from feature-rich keyboards",
+            "Limited appeal for mainstream users"
+          ],
+          "pricing_model": "Free",
+          "market_share": "Low",
+          "key_differentiators": [
+            "Customizable input methods",
+            "Simplicity"
+          ]
+        },
+        {
+          "name": "SwiftKey",
+          "description": "AI-driven keyboard app with multilingual support and personalization.",
+          "business_model": "Free-to-use, formerly monetized through premium features (now owned by Microsoft).",
+          "target_customer": "Global smartphone users, especially multilingual typers.",
+          "strengths": [
+            "Multilingual support",
+            "Strong personalization",
+            "Swipe typing"
+          ],
+          "weaknesses": [
+            "Dependence on cloud for predictions",
+            "Limited focus on niche languages"
+          ],
+          "opportunities": [
+            "Enhancing niche language support",
+            "Improving privacy features"
+          ],
+          "threats": [
+            "Privacy concerns",
+            "Competition from Google Gboard"
+          ],
+          "pricing_model": "Free",
+          "market_share": "Medium",
+          "key_differentiators": [
+            "Multilingual predictions",
+            "Swipe typing"
+          ]
+        },
+        {
+          "name": "Fleksy",
+          "description": "Customizable keyboard app with gesture-based typing.",
+          "business_model": "Free-to-use with optional premium themes and extensions.",
+          "target_customer": "Users seeking customization and gesture typing.",
+          "strengths": [
+            "Highly customizable",
+            "Gesture typing",
+            "Privacy-focused"
+          ],
+          "weaknesses": [
+            "Limited language support",
+            "Smaller user base"
+          ],
+          "opportunities": [
+            "Expanding language support",
+            "Enhancing AI predictions"
+          ],
+          "threats": [
+            "Competition from larger players",
+            "Limited resources"
+          ],
+          "pricing_model": "Free with in-app purchases",
+          "market_share": "Low",
+          "key_differentiators": [
+            "Customization options",
+            "Gesture typing"
+          ]
+        }
+      ],
+      "market_gaps": [
+        "Limited Vietnamese diacritic support",
+        "Privacy-focused on-device learning",
+        "Regional slang recognition"
+      ],
+      "competitive_landscape_summary": "The mobile keyboard market is dominated by global players like Google Gboard and SwiftKey, which offer broad language support but lack specialized features for Vietnamese. Niche players like Laban Key focus on localization but lag in modern AI capabilities. Opportunities exist in addressing Vietnamese language nuances, improving privacy, and integrating regional slang support."
+    },
+    "usp_generation": {
+      "primary_usp": {
+        "usp": "Type Vietnamese with flawless diacritics and tone marks, all while keeping your data private on-device.",
+        "target_audience": "Young Vietnamese professionals aged 25-35 who prioritize typing accuracy and data privacy",
+        "supporting_evidence": "Market research shows a 40-60% user concern about privacy, and competitors like Gboard and Laban Key lack robust on-device learning and diacritic support.",
+        "differentiation_level": "Very High"
+      },
+      "secondary_usps": [
+        {
+          "usp": "Personalize your typing experience with on-device learning that adapts to your unique Vietnamese slang and phrases.",
+          "target_audience": "Vietnamese college students and young professionals who use regional slang and informal expressions",
+          "supporting_evidence": "Competitors like SwiftKey and Fleksy lack localized slang recognition, and users report 25-40% extra time spent correcting informal phrases.",
+          "differentiation_level": "High"
+        },
+        {
+          "usp": "Enjoy full keyboard functionality offline, ensuring seamless typing anywhere, anytime.",
+          "target_audience": "Vietnamese mobile users in areas with unreliable internet access",
+          "supporting_evidence": "Competitors often rely on cloud processing, causing functionality loss offline, impacting 10-15% of users monthly.",
+          "differentiation_level": "Medium"
+        }
+      ],
+      "positioning_statement": "For Vietnamese-speaking mobile users aged 18-45, our AI keyboard is the privacy-first solution that ensures accurate Vietnamese typing with diacritics and tone marks because it leverages on-device learning without compromising data privacy.",
+      "value_proposition_canvas": {
+        "customer_jobs": [
+          "Type Vietnamese quickly and accurately",
+          "Maintain data privacy during typing",
+          "Use regional slang and expressions effortlessly"
+        ],
+        "customer_pains": [
+          "Frequent manual corrections due to inaccurate predictions",
+          "Privacy concerns with cloud-based keyboards",
+          "Lack of support for Vietnamese diacritics and slang"
+        ],
+        "customer_gains": [
+          "Faster typing with fewer errors",
+          "Peace of mind with on-device data processing",
+          "Improved expression through accurate slang recognition"
+        ],
+        "pain_relievers": [
+          "On-device federated learning for personalized predictions",
+          "Privacy-preserving model updates",
+          "Vietnamese diacritic prediction with tone marks"
+        ],
+        "gain_creators": [
+          "Regional slang and informal expression support",
+          "Offline mode with full functionality",
+          "Custom dictionary for user-specific terms"
+        ],
+        "products_services": [
+          "AI-powered Vietnamese keyboard with on-device learning",
+          "Privacy-focused model updates",
+          "Offline-capable prediction engine"
+        ]
+      }
+    }
+  }
+}

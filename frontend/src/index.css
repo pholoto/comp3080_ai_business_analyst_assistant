@@ -1,0 +1,193 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@layer base {
+  :root {
+    --background: 200 20% 98%;
+    --foreground: 210 25% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 210 25% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 25% 10%;
+
+    --primary: 180 100% 39%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 180 30% 95%;
+    --secondary-foreground: 180 100% 30%;
+
+    --muted: 200 20% 96%;
+    --muted-foreground: 210 15% 45%;
+
+    --accent: 180 60% 92%;
+    --accent-foreground: 180 100% 25%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 200 20% 90%;
+    --input: 200 20% 90%;
+    --ring: 180 100% 39%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 180 100% 39%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 180 30% 95%;
+    --sidebar-accent-foreground: 180 100% 25%;
+    --sidebar-border: 200 20% 90%;
+    --sidebar-ring: 180 100% 39%;
+
+    /* Custom AIBA tokens */
+    --aiba-cyan: 180 100% 39%;
+    --aiba-cyan-light: 180 60% 92%;
+    --aiba-cyan-dark: 180 100% 25%;
+    --aiba-gradient: linear-gradient(135deg, hsl(180 100% 39%) 0%, hsl(190 100% 45%) 100%);
+    --aiba-gradient-light: linear-gradient(180deg, hsl(180 60% 97%) 0%, hsl(0 0% 100%) 100%);
+    --aiba-shadow: 0 4px 24px -4px hsl(180 100% 39% / 0.15);
+    --aiba-shadow-lg: 0 12px 40px -8px hsl(180 100% 39% / 0.2);
+    --aiba-glow: 0 0 40px hsl(180 100% 50% / 0.25);
+  }
+
+  .dark {
+    --background: 210 25% 8%;
+    --foreground: 200 20% 98%;
+
+    --card: 210 25% 12%;
+    --card-foreground: 200 20% 98%;
+
+    --popover: 210 25% 12%;
+    --popover-foreground: 200 20% 98%;
+
+    --primary: 180 100% 45%;
+    --primary-foreground: 210 25% 8%;
+
+    --secondary: 210 20% 18%;
+    --secondary-foreground: 180 100% 45%;
+
+    --muted: 210 20% 18%;
+    --muted-foreground: 200 15% 60%;
+
+    --accent: 210 20% 18%;
+    --accent-foreground: 180 100% 45%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 20% 18%;
+    --input: 210 20% 18%;
+    --ring: 180 100% 45%;
+
+    --sidebar-background: 210 25% 10%;
+    --sidebar-foreground: 200 20% 90%;
+    --sidebar-primary: 180 100% 45%;
+    --sidebar-primary-foreground: 210 25% 8%;
+    --sidebar-accent: 210 20% 18%;
+    --sidebar-accent-foreground: 180 100% 45%;
+    --sidebar-border: 210 20% 18%;
+    --sidebar-ring: 180 100% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+}
+
+@layer components {
+  .grid-pattern {
+    background-image: 
+      linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--border)) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--aiba-gradient);
+  }
+
+  .glass-card {
+    @apply bg-card/80 backdrop-blur-xl border border-border/50 shadow-lg;
+  }
+
+  .aiba-button-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300;
+    box-shadow: var(--aiba-shadow);
+  }
+
+  .aiba-button-primary:hover {
+    box-shadow: var(--aiba-shadow-lg);
+    transform: translateY(-1px);
+  }
+
+  .aiba-glow {
+    box-shadow: var(--aiba-glow);
+  }
+
+  .phase-locked {
+    @apply opacity-60 cursor-not-allowed;
+  }
+
+  .phase-active {
+    @apply ring-2 ring-primary ring-offset-2;
+  }
+
+  .phase-completed {
+    @apply border-primary/30 bg-primary/5;
+  }
+}
+
+@layer utilities {
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.6s ease-out forwards;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out forwards;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 20px hsl(180 100% 50% / 0.2); }
+    50% { box-shadow: 0 0 40px hsl(180 100% 50% / 0.4); }
+  }
+
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+}

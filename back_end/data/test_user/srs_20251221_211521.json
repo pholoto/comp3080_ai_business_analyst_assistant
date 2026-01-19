@@ -1,0 +1,266 @@
+{
+  "document_title": "Software Requirements Specification for Vietnamese Federated Keyboard Assistant",
+  "version": "1.0",
+  "date": "2025-12-21",
+  "authors": [
+    "COMP3080 Business Analyst Assistant Team"
+  ],
+  "introduction": {
+    "section_number": "1",
+    "title": "Introduction",
+    "content": "The Vietnamese Federated Keyboard Assistant is an AI-powered keyboard solution designed to address the challenges faced by Vietnamese-speaking mobile users. It focuses on delivering accurate Vietnamese diacritic predictions, regional slang recognition, and on-device learning to ensure data privacy and improve typing efficiency.",
+    "subsections": [
+      {
+        "title": "Purpose",
+        "content": "This Software Requirements Specification (SRS) document outlines the functional and non-functional requirements for the Vietnamese Federated Keyboard Assistant. It covers the prediction engine's capabilities, privacy-preserving features, and integration with Android devices. The document specifies the MVP scope, including core features like on-device learning and diacritic prediction, while excluding voice-to-text and swipe typing."
+      },
+      {
+        "title": "Document Conventions",
+        "content": "This document follows IEEE 830 SRS standards. Functional requirements are labeled as 'FR-XXX' and non-functional requirements as 'NFR-XXX.' All requirements are prioritized using the MoSCoW method (Must-have, Should-have, Could-have, Won't-have)."
+      },
+      {
+        "title": "Intended Audience and Reading Suggestions",
+        "content": "This document is intended for developers, project managers, testers, and stakeholders. Developers should focus on Sections 2 and 3 for technical requirements. Project managers and stakeholders are advised to review Sections 1 and 4 for scope and market alignment. Testers should refer to acceptance criteria in Section 3 for validation."
+      },
+      {
+        "title": "Product Scope",
+        "content": "The Vietnamese Federated Keyboard Assistant aims to revolutionize Vietnamese typing on mobile devices by providing accurate diacritic predictions and regional slang recognition. Its primary objective is to enhance typing speed and accuracy while ensuring user data remains private through on-device learning. The product targets Vietnamese-speaking users aged 18-45, addressing their pain points related to typing efficiency and privacy."
+      },
+      {
+        "title": "References",
+        "content": "1. IEEE 830 Standard for Software Requirements Specifications. 2. Vietnamese Data Privacy Regulations. 3. Statista Market Reports (2023). 4. IBISWorld Industry Analysis (2023)."
+      }
+    ]
+  },
+  "overall_description": {
+    "section_number": "2",
+    "title": "Overall Description",
+    "content": "Overview of the Vietnamese Federated Keyboard Assistant, a privacy-focused, AI-powered keyboard designed for Vietnamese-speaking mobile users.",
+    "subsections": [
+      {
+        "title": "Product Perspective",
+        "content": "The Vietnamese Federated Keyboard Assistant is a standalone mobile application designed to replace existing Vietnamese keyboard solutions. It focuses on improving typing accuracy with Vietnamese diacritics and tone marks while ensuring data privacy through on-device processing."
+      },
+      {
+        "title": "Product Functions",
+        "content": [
+          "Predict Vietnamese words with accurate diacritics and tone marks.",
+          "Personalize typing predictions using on-device federated learning.",
+          "Ensure privacy by keeping all typing data on-device.",
+          "Support offline functionality with full prediction capabilities.",
+          "Adapt predictions to individual user typing patterns.",
+          "Secure model updates without exposing user data."
+        ]
+      },
+      {
+        "title": "User Classes and Characteristics",
+        "content": [
+          "Primary Users: Young Vietnamese professionals aged 25-35 who prioritize typing accuracy and data privacy.",
+          "Secondary Users: College students aged 18-24 and business owners aged 35-45 who use Vietnamese for academic, social, and professional communication.",
+          "Frequency of Use: Daily communication needs, ranging from personal messaging to work-related communication.",
+          "Technical Expertise: Moderate technical proficiency with Android devices."
+        ]
+      },
+      {
+        "title": "Operating Environment",
+        "content": "The keyboard will operate on Android devices with a minimum of 2GB RAM, supporting Android 8.0 and above. It will be compatible with major messaging and productivity apps."
+      },
+      {
+        "title": "Design and Implementation Constraints",
+        "content": [
+          "Hardware limitations: Model size must be under 50MB for efficient on-device storage.",
+          "Privacy regulations: Compliance with Vietnamese data privacy laws is mandatory.",
+          "Technical constraints: On-device federated learning and secure aggregation mechanisms must be implemented."
+        ]
+      },
+      {
+        "title": "User Documentation",
+        "content": "Documentation will include a user manual detailing installation, setup, and usage instructions. Tutorials and help articles will be provided for personalized prediction and privacy features."
+      },
+      {
+        "title": "Assumptions and Dependencies",
+        "content": [
+          "Assumption: Users have Android devices with basic technical proficiency.",
+          "Dependency: TensorFlow framework for implementing federated learning mechanisms."
+        ]
+      }
+    ]
+  },
+  "specific_requirements": {
+    "section_number": "6",
+    "title": "Other Requirements",
+    "content": "Brief overview of additional requirements.",
+    "subsections": [
+      {
+        "title": "Database Requirements",
+        "content": "- DB-001: Implement an on-device SQLite database to store user typing patterns and custom dictionaries securely."
+      },
+      {
+        "title": "Legal Requirements",
+        "content": "- LEGAL-001: Ensure compliance with Vietnamese data privacy laws by implementing secure aggregation techniques."
+      },
+      {
+        "title": "Reuse Objectives",
+        "content": "Design the federated learning model and on-device processing modules to be reusable for future iterations or other language support."
+      }
+    ]
+  },
+  "external_interfaces": {
+    "section_number": "3",
+    "title": "External Interface Requirements",
+    "content": "This section describes external interface requirements for the Vietnamese Federated Keyboard Assistant.",
+    "subsections": [
+      {
+        "title": "User Interfaces",
+        "content": "The system will integrate as a keyboard input method within Android devices, adhering to Android's Input Method Editor (IME) framework. The UI will include a standard QWERTY layout with Vietnamese-specific keys for diacritics (e.g., '\u0103', '\u00e2', '\u00ea'). Navigation will support seamless switching between Vietnamese and English layouts via a dedicated language toggle button. Accessibility requirements include compatibility with Android's TalkBack screen reader and support for high-contrast themes. The keyboard will provide visual feedback for predictions, such as highlighted suggested words and tone mark corrections."
+      },
+      {
+        "title": "Hardware Interfaces",
+        "content": "The software will interact with Android devices with minimum specifications of 2GB RAM and Android 8.0+. It will utilize the device's touchscreen for input and leverage on-device storage for model and user data. Battery usage optimization will ensure additional drain is below 5% during typical usage. The system will not require external hardware dependencies."
+      },
+      {
+        "title": "Software Interfaces",
+        "content": "The system will integrate with Android's IME API for text input and prediction display. It will utilize TensorFlow Lite for on-device machine learning inference. No external APIs or databases will be accessed, as all processing and data storage occur on-device. The system will comply with Android's security sandbox to ensure isolation from other apps."
+      },
+      {
+        "title": "Communications Interfaces",
+        "content": "The system operates entirely offline, with no network communication required for core functionality. All data processing, including federated learning updates, occurs on-device. Security requirements include encryption of user typing data using AES-256 and compliance with Vietnamese data privacy regulations. No external communication protocols are utilized."
+      }
+    ]
+  },
+  "system_features": [
+    {
+      "feature_id": "SF-1",
+      "name": "Vietnamese Diacritic Prediction with Tone Marks",
+      "description": "The system predicts and suggests Vietnamese words with accurate diacritics and tone marks as users type, improving typing accuracy for Vietnamese language nuances.",
+      "priority": "High",
+      "stimulus_response": "When a user types Vietnamese characters, the system analyzes input patterns and provides predictions; if a user selects or continues typing, the system refines suggestions based on context without errors in diacritics or tone marks.",
+      "functional_requirements": [
+        {
+          "id": "REQ-001",
+          "description": "Achieve at least 85% prediction accuracy for Vietnamese words with diacritics in test scenarios."
+        },
+        {
+          "id": "REQ-002",
+          "description": "Display suggestions including proper tone marks consistent with Vietnamese grammar."
+        },
+        {
+          "id": "REQ-003",
+          "description": "Integrate with on-device processing to ensure no cloud dependency for predictions."
+        }
+      ]
+    },
+    {
+      "feature_id": "SF-2",
+      "name": "On-Device Federated Learning for Personalization",
+      "description": "The system personalizes typing predictions by learning from user patterns locally on the device, enhancing accuracy without sharing data externally.",
+      "priority": "High",
+      "stimulus_response": "As users input text, the system learns patterns over sessions; upon device restart or continued use, personalized predictions are generated based on accumulated on-device data, adapting suggestions for unique user habits.",
+      "functional_requirements": [
+        {
+          "id": "REQ-004",
+          "description": "Ensure all user typing data remains stored and processed solely on-device."
+        },
+        {
+          "id": "REQ-005",
+          "description": "Improve predictions over time based on user input without privacy breaches."
+        },
+        {
+          "id": "REQ-006",
+          "description": "Support federated updates that aggregate anonymized insights securely."
+        }
+      ]
+    },
+    {
+      "feature_id": "SF-3",
+      "name": "Privacy-Preserving Model Updates",
+      "description": "The system updates prediction models using anonymous data aggregation, maintaining user privacy and complying with regulations.",
+      "priority": "High",
+      "stimulus_response": "During model update events (e.g., app refresh or scheduled intervals), the system aggregates data anonymously; users receive improved functionality without data transmission, and the system confirms updates via on-device metrics.",
+      "functional_requirements": [
+        {
+          "id": "REQ-007",
+          "description": "Conduct model updates without collecting personally identifiable data."
+        },
+        {
+          "id": "REQ-008",
+          "description": "Ensure compliance with Vietnamese data privacy laws through audits."
+        },
+        {
+          "id": "REQ-009",
+          "description": "Prevent reverse-engineering of individual user data in aggregated models."
+        }
+      ]
+    },
+    {
+      "feature_id": "SF-4",
+      "name": "Offline Mode with Full Functionality",
+      "description": "The system provides complete prediction and personalization features without internet connectivity, ensuring usability in all scenarios.",
+      "priority": "High",
+      "stimulus_response": "When the device is offline, users continue typing as normal; the system responds with full predictions and learning based on cached on-device models, with no degradation in performance.",
+      "functional_requirements": [
+        {
+          "id": "REQ-010",
+          "description": "Enable all core features, including predictions and learning, without network access."
+        },
+        {
+          "id": "REQ-011",
+          "description": "Maintain consistent accuracy and speed in offline mode compared to online."
+        },
+        {
+          "id": "REQ-012",
+          "description": "Store necessary components under 50MB to support low-resource devices."
+        }
+      ]
+    }
+  ],
+  "non_functional_requirements": {
+    "section_number": "5",
+    "title": "Other Nonfunctional Requirements",
+    "content": "This section specifies non-functional requirements for the Vietnamese Federated Keyboard Assistant.",
+    "subsections": [
+      {
+        "title": "Performance Requirements",
+        "content": "- NFR-PERF-001: The system shall predict Vietnamese words with diacritics with 85% accuracy.\n- NFR-PERF-002: The system shall respond to user input within 2 seconds.\n- NFR-PERF-003: The system shall support typing at a rate of 40 words per minute with minimal corrections."
+      },
+      {
+        "title": "Safety Requirements",
+        "content": "- NFR-SAFE-001: The system shall ensure no data leakage occurs during typing sessions.\n- NFR-SAFE-002: The system shall prevent unauthorized access to user typing patterns."
+      },
+      {
+        "title": "Security Requirements",
+        "content": "- NFR-SEC-001: All personal typing data must remain on-device and not be transmitted to external servers.\n- NFR-SEC-002: The system shall comply with Vietnamese data privacy regulations.\n- NFR-SEC-003: The system shall use secure aggregation techniques for model updates."
+      },
+      {
+        "title": "Software Quality Attributes",
+        "content": "- NFR-QUAL-001: The system shall operate offline with 100% functionality.\n- NFR-QUAL-002: The system shall be modular to facilitate updates and maintenance.\n- NFR-QUAL-003: The system shall provide seamless switching between Vietnamese and English."
+      },
+      {
+        "title": "Business Rules",
+        "content": "- NFR-BUS-001: The system shall adhere to Vietnamese data privacy laws.\n- NFR-BUS-002: The system shall provide personalized predictions without compromising user privacy.\n- NFR-BUS-003: The system shall support regional slang and informal expressions."
+      }
+    ]
+  },
+  "appendices": [
+    {
+      "title": "Appendix A: Glossary",
+      "content": "See glossary section."
+    },
+    {
+      "title": "Appendix B: Analysis Models",
+      "content": "System architecture and data flow models."
+    },
+    {
+      "title": "Appendix C: To Be Determined List",
+      "content": "No TBD items."
+    }
+  ],
+  "glossary": {
+    "Federated Learning": "A machine learning approach where models are trained across multiple decentralized devices while keeping data localized.",
+    "Diacritics": "Accent marks used in the Vietnamese language to indicate tone and pronunciation.",
+    "On-Device Processing": "Execution of computations directly on the user's device without relying on external servers.",
+    "Secure Aggregation": "A cryptographic technique to combine model updates from multiple devices without exposing individual data.",
+    "SQLite": "A lightweight, serverless database engine used for local data storage on mobile devices."
+  },
+  "template_content": null
+}
